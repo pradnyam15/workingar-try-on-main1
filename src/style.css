@@ -234,6 +234,7 @@ h3 {
 #sizeSlider {
   width: 100%;
   height: 6px;
+  appearance: none;
   -webkit-appearance: none;
   background: #e9ecef;
   border-radius: 3px;
