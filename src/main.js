@@ -11,6 +11,7 @@ const modeButtons = Array.from(document.querySelectorAll('.mode-btn'));
 const glassesButtons = Array.from(document.querySelectorAll('.glasses-btn'));
 const controlsEl = document.getElementById('controls');
 const toggleBtn = document.getElementById('toggleControls');
+const hamburgerBtn = document.getElementById('hamburgerBtn');
 
 // Mobile controls bottom-sheet behavior
 function isMobile() {
@@ -18,23 +19,38 @@ function isMobile() {
 }
 
 function applyControlsResponsiveState() {
-  if (!controlsEl || !toggleBtn) return;
+  if (!controlsEl) return;
   if (isMobile()) {
-    toggleBtn.style.display = 'inline-flex';
-    // Start collapsed on mobile to minimize video obstruction
-    controlsEl.classList.add('collapsed');
-  } else {
-    toggleBtn.style.display = 'none';
+    // Mobile: use left drawer with hamburger, hide old bottom-sheet toggle
+    if (toggleBtn) toggleBtn.style.display = 'none';
+    if (hamburgerBtn) hamburgerBtn.style.display = 'block';
     controlsEl.classList.remove('collapsed');
+    controlsEl.classList.remove('open'); // start closed
+  } else {
+    // Desktop/tablet: show panel statically on the left
+    if (toggleBtn) toggleBtn.style.display = 'none';
+    if (hamburgerBtn) hamburgerBtn.style.display = 'none';
+    controlsEl.classList.remove('collapsed');
+    controlsEl.classList.remove('open');
   }
 }
 
-if (toggleBtn && controlsEl) {
-  toggleBtn.addEventListener('click', () => {
+// New mobile hamburger drawer toggle
+if (hamburgerBtn && controlsEl) {
+  hamburgerBtn.addEventListener('click', () => {
     if (!isMobile()) return;
-    controlsEl.classList.toggle('collapsed');
+    controlsEl.classList.toggle('open');
   });
 }
+
+// Close drawer after selecting a menu item on mobile
+document.addEventListener('click', (e) => {
+  if (!isMobile() || !controlsEl) return;
+  if (!controlsEl.classList.contains('open')) return;
+  if (e.target.closest('.mode-btn') || e.target.closest('.item-btn')) {
+    controlsEl.classList.remove('open');
+  }
+});
 
 // Re-evaluate on resize and on load
 window.addEventListener('resize', applyControlsResponsiveState);

@@ -379,7 +379,7 @@ details[open] > summary { color: var(--primary); }
   background: var(--primary);
   color: #fff;
   box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-  display: none;
+  display: none; /* deprecated for mobile hamburger */
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
@@ -390,7 +390,57 @@ details[open] > summary { color: var(--primary); }
 }
 
 @media (max-width: 768px) {
-  #toggleControls { display: inline-flex; }
+  #toggleControls { display: none; }
+}
+
+/* Mobile hamburger (top-left) */
+#hamburgerBtn {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  display: none;
+  z-index: 12;
+}
+#hamburgerBtn .bar {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: #333;
+  border-radius: 2px;
+}
+#hamburgerBtn .bar + .bar { margin-top: 5px; }
+
+@media (max-width: 768px) {
+  #hamburgerBtn { display: block; }
+}
+
+/* Mobile drawer for controls */
+@media (max-width: 768px) {
+  #controls {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: auto;
+    width: 80vw;
+    max-width: 320px;
+    border-radius: 0 12px 12px 0;
+    padding: 16px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    max-height: none;
+    box-shadow: 8px 0 24px rgba(0,0,0,0.25);
+  }
+  #controls.open {
+    transform: translateX(0);
+  }
 }
 
 /* Scrollbar Styling */
