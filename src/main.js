@@ -9,6 +9,36 @@ const sizeSlider = document.getElementById('sizeSlider');
 const sizeValue = document.getElementById('sizeValue');
 const modeButtons = Array.from(document.querySelectorAll('.mode-btn'));
 const glassesButtons = Array.from(document.querySelectorAll('.glasses-btn'));
+const controlsEl = document.getElementById('controls');
+const toggleBtn = document.getElementById('toggleControls');
+
+// Mobile controls bottom-sheet behavior
+function isMobile() {
+  return window.matchMedia('(max-width: 768px)').matches;
+}
+
+function applyControlsResponsiveState() {
+  if (!controlsEl || !toggleBtn) return;
+  if (isMobile()) {
+    toggleBtn.style.display = 'inline-flex';
+    // Start collapsed on mobile to minimize video obstruction
+    controlsEl.classList.add('collapsed');
+  } else {
+    toggleBtn.style.display = 'none';
+    controlsEl.classList.remove('collapsed');
+  }
+}
+
+if (toggleBtn && controlsEl) {
+  toggleBtn.addEventListener('click', () => {
+    if (!isMobile()) return;
+    controlsEl.classList.toggle('collapsed');
+  });
+}
+
+// Re-evaluate on resize and on load
+window.addEventListener('resize', applyControlsResponsiveState);
+applyControlsResponsiveState();
 
 let sizeScalePct = 100;
 

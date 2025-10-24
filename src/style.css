@@ -336,22 +336,78 @@ h3 {
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   #controls {
-    width: 90%;
+    position: fixed;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 720px;
+    top: auto;
+    bottom: 0;
+    border-radius: 14px 14px 0 0;
+    padding: 14px 16px 18px;
+    max-height: 44vh;
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.25);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    transform: translateY(0);
+  }
+
+  /* Collapsed bottom sheet state */
+  #controls.collapsed {
+    transform: translateY(calc(100% - 56px));
+  }
+
+  /* Provide a small grab area effect on header line when collapsed */
+  .header {
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -6px;
     left: 50%;
     transform: translateX(-50%);
-    top: auto;
-    bottom: 20px;
-    max-height: 50vh;
+    width: 36px;
+    height: 4px;
+    background: rgba(0,0,0,0.15);
+    border-radius: 4px;
   }
-  
+
   .mode-buttons,
   .item-buttons {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
-  
+
   h1 {
     font-size: 1.3rem;
   }
+}
+
+/* Floating toggle button (mobile only) */
+#toggleControls {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 11;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+#toggleControls:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 768px) {
+  #toggleControls { display: inline-flex; }
 }
 
 /* Scrollbar Styling */
