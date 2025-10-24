@@ -273,7 +273,7 @@ function drawRing(centerX, centerY, radius, angle, color) {
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate(angle - Math.PI / 2);
-    const size = radius * 3.24 * (sizeScalePct / 100); // doubled from 1.62
+    const size = radius * 2.592 * (sizeScalePct / 100); // 20% smaller than 3.24
     ctx.drawImage(img, -size / 2, -size / 2, size, size);
     ctx.restore();
     return;
@@ -530,7 +530,7 @@ function onFaceResults(results) {
     let targetY = neckBaseY + (chinY - neckBaseY) * anchorBlend;
 
     // adjust further down by a fraction of necklace height so the necklace sits below chin
-    targetY += height * 0.60; // push necklace much lower
+    targetY += height * 0.52; // bring necklace slightly up
 
     // Compute angle from left->right neck side, using pixel coords for stability
     const neckAngle = Math.atan2(rightNeckY - leftNeckY, rightNeckX - leftNeckX);
