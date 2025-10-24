@@ -273,7 +273,7 @@ function drawRing(centerX, centerY, radius, angle, color) {
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate(angle - Math.PI / 2);
-    const size = radius * 1.62 * (sizeScalePct / 100);
+    const size = radius * 3.24 * (sizeScalePct / 100); // doubled from 1.62
     ctx.drawImage(img, -size / 2, -size / 2, size, size);
     ctx.restore();
     return;
@@ -525,12 +525,12 @@ function onFaceResults(results) {
     // Vertical anchor: start from neckBase (low neck) and move slightly toward chin
     // This pushes the anchor below the jawline, roughly toward the collarbone
     // The factor controls how far toward chin we pull the anchor (0 = neckBase, 1 = chin)
-    const anchorBlend = 0.18; // smaller = closer to neckBase, larger = closer to chin
+    const anchorBlend = 0.10; // lower anchor (closer to neck base)
     let targetX = neckSidesMidX * 0.6 + neckBaseX * 0.4; // prefer neck sides mid for horizontal stability
     let targetY = neckBaseY + (chinY - neckBaseY) * anchorBlend;
 
     // adjust further down by a fraction of necklace height so the necklace sits below chin
-    targetY += height * 0.28;
+    targetY += height * 0.60; // push necklace much lower
 
     // Compute angle from left->right neck side, using pixel coords for stability
     const neckAngle = Math.atan2(rightNeckY - leftNeckY, rightNeckX - leftNeckX);
