@@ -794,19 +794,42 @@ function onFaceResults(results) {
 
 async function startCamera() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
-      audio: false
-    });
+    if (!('mediaDevices' in navigator) || !navigator.mediaDevices.getUserMedia) {
+      statusEl.textContent = 'Error: Camera API not supported in this browser';
+      loadingEl.textContent = 'Use a modern browser with camera support';
+      return;
+    }
+    const localHostnames = ['localhost', '127.0.0.1', '::1'];
+    if (!window.isSecureContext && !localHostnames.includes(location.hostname)) {
+      statusEl.textContent = 'This page must be served over HTTPS or localhost for camera access';
+      loadingEl.textContent = 'Open via a dev server (http://localhost) or HTTPS';
+      return;
+    }
+
+    let stream = null;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      });
+    } catch (e1) {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      } catch (e2) {
+        console.error('Error accessing camera:', e2);
+        statusEl.textContent = 'Error: Camera access denied or unavailable';
+        loadingEl.textContent = 'Check browser permissions and reload';
+        return;
+      }
+    }
+
     video.srcObject = stream;
 
-    video.onloadedmetadata = () => {
+    const onReady = () => {
       loadingEl.style.display = 'none';
       statusEl.textContent = 'Camera ready. Show your hand or face!';
-
       const cameraInstance = new Camera(video, {
         onFrame: async () => {
-          // Send frames to both; each renderer gates by mode
           await hands.send({ image: video });
           await faceMesh.send({ image: video });
         },
@@ -815,6 +838,13 @@ async function startCamera() {
       });
       cameraInstance.start();
     };
+
+    if (video.readyState >= 2) {
+      onReady();
+    } else {
+      video.addEventListener('loadedmetadata', () => { resizeCanvasToVideo(); onReady(); }, { once: true });
+    }
+    try { await video.play(); } catch {}
   } catch (err) {
     console.error('Error accessing camera:', err);
     statusEl.textContent = 'Error: Camera access denied or unavailable';
