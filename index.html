@@ -22,8 +22,8 @@
         <div id="status">Initializing camera...</div>
       </div>
       
-      <div class="mode-selector">
-        <h2>Categories</h2>
+      <details class="mode-selector" open>
+        <summary>Categories</summary>
         <div class="mode-buttons">
           <button class="mode-btn active" data-mode="rings">
             <i class="fas fa-ring"></i>
@@ -42,15 +42,18 @@
             <span>Necklace</span>
           </button>
         </div>
-      </div>
+      </details>
 
-      <div class="size-control">
-        <label for="sizeSlider">Size: <span id="sizeValue">100%</span></label>
-        <input id="sizeSlider" type="range" min="50" max="200" value="100" step="1" />
-      </div>
+      <details open>
+        <summary>Size</summary>
+        <div class="size-control">
+          <label for="sizeSlider">Size: <span id="sizeValue">100%</span></label>
+          <input id="sizeSlider" type="range" min="50" max="200" value="100" step="1" />
+        </div>
+      </details>
 
-      <div class="item-selector" id="ringSelector">
-        <h3>Ring Styles</h3>
+      <details class="item-selector" id="ringSelector" open>
+        <summary>Ring Styles</summary>
         <div class="item-buttons">
           <button class="item-btn ring-btn active" data-color="diamond-ring-1707837">
             <i class="fas fa-gem"></i>
@@ -65,10 +68,10 @@
             <span>Laurel Leaf</span>
           </button>
         </div>
-      </div>
+      </details>
 
-      <div class="item-selector" id="glassesSelector">
-        <h3>Sunglasses Styles</h3>
+      <details class="item-selector" id="glassesSelector">
+        <summary>Sunglasses Styles</summary>
         <div class="item-buttons">
           <button class="item-btn glasses-btn active" data-glasses="aviators-105130">
             <i class="fas fa-sun"></i>
@@ -91,7 +94,7 @@
             <span>Modern</span>
           </button>
         </div>
-      </div>
+      </details>
     </div>
   </div>
   <button id="toggleControls" aria-label="Toggle controls">
