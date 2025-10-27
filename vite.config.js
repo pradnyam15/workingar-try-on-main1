@@ -8,4 +8,12 @@ const base = process.env.DEPLOY_TARGET === 'gh-pages' ? `/${repo}/` : '/';
 
 export default defineConfig({
   base,
+  build: {
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        campaign: 'campaign.html',
+      }
+    }
+  }
 })
