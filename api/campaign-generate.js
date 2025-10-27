@@ -16,16 +16,29 @@ export default async function handler(req, res) {
     // Prefer Stability AI if key is provided
     if (stabilityKey) {
       // Build multipart form for image-to-image (Stability v1)
-      const initBuffer = Buffer.from(imageBase64, 'base64');
-      const resizedBuffer = await sharp(initBuffer)
+      const personBuffer = Buffer.from(imageBase64, 'base64');
+
+      // Fetch and prepare the jewelry image
+      const jewelryImageResponse = await fetch(refImageUrl);
+      if (!jewelryImageResponse.ok) {
+        throw new Error(`Failed to fetch reference image: ${jewelryImageResponse.statusText}`);
+      }
+      const jewelryBuffer = Buffer.from(await jewelryImageResponse.arrayBuffer());
+
+      // Composite the jewelry onto the person image
+      const compositedBuffer = await sharp(personBuffer)
+        .composite([{
+          input: jewelryBuffer,
+          gravity: 'center' // This will center the jewelry. You might need to adjust this.
+        }])
         .resize(896, 1152)
         .jpeg()
         .toBuffer();
 
       const form = new FormData();
-      const fullPrompt = `${prompt} Style harmonized with this reference jewelry: ${refImageUrl}. Preserve subject identity.`;
-      form.append('init_image', new Blob([resizedBuffer], { type: 'image/jpeg' }), 'init.jpg');
-      form.append('image_strength', '0.35');
+      const fullPrompt = `${prompt}. Seamlessly blend the subject and the jewelry they are wearing. Preserve subject identity.`;
+      form.append('init_image', new Blob([compositedBuffer], { type: 'image/jpeg' }), 'init.jpg');
+      form.append('image_strength', '0.6');
       form.append('init_image_mode', 'IMAGE_STRENGTH');
       form.append('text_prompts[0][text]', fullPrompt);
       form.append('cfg_scale', '7');
