@@ -29,11 +29,7 @@ export default async function handler(req, res) {
         var refBase64 = Buffer.from(ab).toString('base64');
       }
     } catch {}
-    const models = [
-      process.env.GEMINI_MODEL || 'gemini-2.5-flash-image',
-      'gemini-1.5-flash',
-      'gemini-1.5-pro'
-    ];
+    const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent';
     const parts = [
       { text: `${prompt} Preserve the subject's identity. Style must harmonize with the reference jewelry.` },
       { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } },
@@ -44,39 +40,27 @@ export default async function handler(req, res) {
       parts.push({ text: `Reference jewelry image URL: ${refImageUrl}` });
     }
     const body = { contents: [{ role: 'user', parts }] };
-    let imageOut = '';
-    let lastResp = null;
-    for (const model of models) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-      const r = await fetch(url + `?key=${encodeURIComponent(geminiKey)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      lastResp = r;
-      if (r.status === 429) {
-        continue;
-      }
-      if (!r.ok) {
-        break;
-      }
-      const data = await r.json();
-      try {
-        const partsOut = data.candidates?.[0]?.content?.parts || [];
-        for (const p of partsOut) {
-          if (p?.inline_data?.data && (p?.inline_data?.mime_type || '').startsWith('image/')) {
-            imageOut = p.inline_data.data;
-            break;
-          }
-        }
-      } catch {}
-      if (imageOut) break;
-    }
-    if (lastResp && !lastResp.ok && lastResp.status !== 429) {
-      const errText = await lastResp.text();
-      res.status(lastResp.status).json({ error: errText || 'Gemini upstream error' });
+    const r = await fetch(geminiUrl + `?key=${encodeURIComponent(geminiKey)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) {
+      const errText = await r.text();
+      res.status(r.status).json({ error: errText || 'Gemini upstream error' });
       return;
     }
+    const data = await r.json();
+    let imageOut = '';
+    try {
+      const partsOut = data.candidates?.[0]?.content?.parts || [];
+      for (const p of partsOut) {
+        if (p?.inline_data?.data && (p?.inline_data?.mime_type || '').startsWith('image/')) {
+          imageOut = p.inline_data.data;
+          break;
+        }
+      }
+    } catch {}
     if (!imageOut) {
       res.status(502).json({ error: 'No image returned from Gemini' });
       return;
