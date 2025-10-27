@@ -8,9 +8,35 @@ const errorEl = $('#error');
 const canvas = document.getElementById('previewCanvas');
 const ctx = canvas.getContext('2d');
 const refImgEl = document.getElementById('refImg');
+const itemNecklaceBtn = document.getElementById('itemNecklace');
+const itemKurtaBtn = document.getElementById('itemKurta');
 
 let lastOutputDataUrl = '';
 let lastInputDataUrl = '';
+let selectedItem = 'necklace';
+
+const REF_URLS = {
+  necklace: 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/PNS-MT563.webp',
+  kurta: 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/imgi_10_1154904-21805764.jpg'
+};
+
+function setSelectedItem(item) {
+  selectedItem = item;
+  if (item === 'necklace') {
+    itemNecklaceBtn?.setAttribute('aria-pressed', 'true');
+    itemKurtaBtn?.setAttribute('aria-pressed', 'false');
+  } else {
+    itemNecklaceBtn?.setAttribute('aria-pressed', 'false');
+    itemKurtaBtn?.setAttribute('aria-pressed', 'true');
+  }
+  const url = REF_URLS[item] || REF_URLS.necklace;
+  if (refImgEl) refImgEl.src = url;
+}
+
+itemNecklaceBtn?.addEventListener('click', () => setSelectedItem('necklace'));
+itemKurtaBtn?.addEventListener('click', () => setSelectedItem('kurta'));
+// Initialize default selection
+setSelectedItem('necklace');
 
 function setStatus(msg) {
   statusEl.textContent = msg || '';
@@ -93,13 +119,12 @@ function extractBase64(dataUrl) {
   return comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl;
 }
 
-function buildPrompt(userPrompt) {
-  const base = 'Create a high-end fashion campaign portrait in regal Mughal-era style.' +
-    ' Preserve the person\'s identity, skin tone, and facial structure.' +
-    ' Apply styling and aesthetic inspired by the reference jewelry image: ornate, luxurious, refined lighting, editorial composition, premium color grading.' +
-    ' 8k, photorealistic, studio quality.';
-  // Prompt textbox removed; always use base prompt
-  return base;
+function buildPrompt(item) {
+  if (item === 'kurta') {
+    return 'Create a high-end fashion campaign portrait in regal Mughal-era style. Preserve the person\'s identity, exact facial structure, and skin tone. Style the wardrobe based on the reference kurta: ornate embroidery, rich textiles, premium tailoring, refined studio lighting, editorial composition, premium color grading. Photorealistic, 8k, studio quality. The kurta design, colors, and embellishments must closely match the reference.';
+  }
+  // Necklace default
+  return 'Create a high-end fashion campaign portrait in regal Mughal-era style. Preserve the person\'s identity, exact facial structure, and skin tone. Apply styling inspired by the reference necklace: ornate, luxurious metalwork and gemstones, refined studio lighting, editorial composition, premium color grading. Photorealistic, 8k, studio quality. Do not alter the necklace design.';
 }
 
 async function handleGenerate() {
@@ -118,7 +143,7 @@ async function handleGenerate() {
     const personBase64 = extractBase64(personDataUrl);
 
     const refUrl = refImgEl.getAttribute('src');
-    const prompt = buildPrompt('');
+    const prompt = buildPrompt(selectedItem);
 
     setStatus('Calling backend...');
     const res = await postJson('/api/campaign-generate', {
