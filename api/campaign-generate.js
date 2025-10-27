@@ -19,6 +19,7 @@ export default async function handler(req, res) {
       const fullPrompt = `${prompt} Style harmonized with this reference jewelry: ${refImageUrl}. Preserve subject identity.`;
       form.append('init_image', new Blob([initBuffer], { type: 'image/jpeg' }), 'init.jpg');
       form.append('image_strength', '0.35');
+      form.append('init_image_mode', 'IMAGE_STRENGTH');
       form.append('text_prompts[0][text]', fullPrompt);
       form.append('cfg_scale', '7');
       form.append('samples', '1');
@@ -36,10 +37,16 @@ export default async function handler(req, res) {
         return resp;
       }
 
-      let sr = await callStability('stable-diffusion-xl-1024-v1-0');
-      if (!sr.ok && (sr.status === 404 || sr.status === 400)) {
-        // Fallback to an older widely-available engine
-        sr = await callStability('stable-diffusion-v1-5');
+      const engines = [
+        'stable-diffusion-xl-1024-v1-0',
+        'stable-diffusion-768-v2-1',
+        'stable-diffusion-512-v2-1',
+      ];
+      let sr;
+      for (const eng of engines) {
+        sr = await callStability(eng);
+        if (sr.ok) break;
+        if (!(sr.status === 404 || sr.status === 400)) break;
       }
       if (!sr.ok) {
         const errText = await sr.text();
