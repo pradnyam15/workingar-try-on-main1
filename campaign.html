@@ -34,16 +34,12 @@
     </div>
 
     <div class="panel">
-      <p class="small muted">This tool transforms a person's photo into a Mughal-era campaign visual inspired by the jewelry reference below. You can use your Google AI Studio API key. For production, a backend proxy is recommended.</p>
+      <p class="small muted">This tool transforms a person's photo into a Mughal-era campaign visual inspired by the jewelry reference below.</p>
     </div>
 
     <div class="grid">
       <section class="panel">
         <h3 style="margin-top:0;">Inputs</h3>
-        <div class="field">
-          <label for="apiKey">Google AI Studio API Key <small class="muted">(stored only in memory for this session)</small></label>
-          <input id="apiKey" type="text" placeholder="AIza..." autocomplete="off" />
-        </div>
 
         <div class="field">
           <label>Reference Jewelry (fixed)</label>
@@ -57,10 +53,7 @@
           <small class="muted">Use a clear, front-facing portrait for best results.</small>
         </div>
 
-        <div class="field">
-          <label for="prompt">Prompt</label>
-          <textarea id="prompt" rows="6" placeholder="Describe the campaign style...">Create a high-end fashion campaign portrait in regal Mughal-era style. Preserve the person’s identity, skin tone, and facial structure. Apply styling and aesthetic inspired by the reference jewelry image: ornate, luxurious, refined lighting, editorial composition, premium color grading. 8k, photorealistic, studio quality.</textarea>
-        </div>
+        
 
         <div class="actions">
           <button id="generateBtn" class="btn"><i class="fas fa-wand-magic-sparkles"></i><span>Generate</span></button>

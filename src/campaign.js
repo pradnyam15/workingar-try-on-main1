@@ -1,7 +1,6 @@
 const $ = (s) => document.querySelector(s);
 const apiKeyInput = $('#apiKey');
 const personInput = $('#personImage');
-const promptInput = $('#prompt');
 const generateBtn = $('#generateBtn');
 const downloadBtn = $('#downloadBtn');
 const statusEl = $('#status');
@@ -99,8 +98,8 @@ function buildPrompt(userPrompt) {
     ' Preserve the person\'s identity, skin tone, and facial structure.' +
     ' Apply styling and aesthetic inspired by the reference jewelry image: ornate, luxurious, refined lighting, editorial composition, premium color grading.' +
     ' 8k, photorealistic, studio quality.';
-  if (!userPrompt || !userPrompt.trim()) return base;
-  return userPrompt.trim();
+  // Prompt textbox removed; always use base prompt
+  return base;
 }
 
 async function handleGenerate() {
@@ -119,7 +118,7 @@ async function handleGenerate() {
     const personBase64 = extractBase64(personDataUrl);
 
     const refUrl = refImgEl.getAttribute('src');
-    const prompt = buildPrompt(promptInput.value);
+    const prompt = buildPrompt('');
 
     setStatus('Calling backend...');
     const res = await postJson('/api/campaign-generate', {
