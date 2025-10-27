@@ -11,6 +11,7 @@ const ctx = canvas.getContext('2d');
 const refImgEl = document.getElementById('refImg');
 
 let lastOutputDataUrl = '';
+let lastInputDataUrl = '';
 
 function setStatus(msg) {
   statusEl.textContent = msg || '';
@@ -47,6 +48,7 @@ async function previewLocal(file) {
   const img = new Image();
   img.onload = () => drawImageToCanvas(img);
   img.src = dataUrl;
+  lastInputDataUrl = dataUrl;
 }
 
 personInput.addEventListener('change', async () => {
@@ -110,6 +112,7 @@ async function handleGenerate() {
       return;
     }
     setStatus('Preparing image...');
+    // Load to get a normalized canvas/base64, but don't mislead as final
     await previewLocal(personInput.files[0]);
 
     const personDataUrl = getImageBase64FromCanvas();
@@ -137,7 +140,11 @@ async function handleGenerate() {
     });
     drawImageToCanvas(outImg);
     downloadBtn.disabled = false;
-    setStatus('Done');
+    if (lastInputDataUrl && lastOutputDataUrl && lastInputDataUrl === lastOutputDataUrl) {
+      setStatus('Generated image appears unchanged from input. Check API key and run via Vercel (vercel dev) so /api works.');
+    } else {
+      setStatus('Done');
+    }
   } catch (err) {
     setStatus('');
     setError(String(err.message || err));
