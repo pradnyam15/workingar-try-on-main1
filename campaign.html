@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campaign Generator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="./src/style.css" />
+  <style>
+    .campaign-container { max-width: 960px; margin: 0 auto; padding: 16px; }
+    .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+    .toolbar a { text-decoration: none; color: #fff; background: #111; padding: 8px 12px; border-radius: 8px; display: inline-flex; gap: 8px; align-items: center; font-weight: 600; }
+    .panel { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .field { display: grid; gap: 6px; }
+    .field input[type="text"], .field textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #fff; }
+    .actions { display: flex; gap: 8px; align-items: center; }
+    .btn { background: #111; color: #fff; border: none; border-radius: 8px; padding: 10px 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .preview { display: grid; gap: 8px; }
+    .preview img, .preview canvas { width: 100%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: #000; }
+    .ref-image { max-height: 280px; object-fit: contain; background: #000; }
+    small.muted { opacity: 0.7; }
+    .error { color: #ff7b7b; }
+  </style>
+</head>
+<body>
+  <div class="campaign-container">
+    <div class="toolbar">
+      <a href="./index.html"><i class="fas fa-arrow-left"></i><span>Back</span></a>
+      <h1 style="margin:0; display:flex; gap:8px; align-items:center;"><i class="fas fa-wand-magic-sparkles"></i> Campaign Generator</h1>
+    </div>
+
+    <div class="panel">
+      <p class="small muted">This tool transforms a person's photo into a Mughal-era campaign visual inspired by the jewelry reference below. You can use your Google AI Studio API key. For production, a backend proxy is recommended.</p>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <h3 style="margin-top:0;">Inputs</h3>
+        <div class="field">
+          <label for="apiKey">Google AI Studio API Key <small class="muted">(stored only in memory for this session)</small></label>
+          <input id="apiKey" type="text" placeholder="AIza..." autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label>Reference Jewelry (fixed)</label>
+          <img id="refImg" class="ref-image" alt="Reference jewelry" src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/PNS-MT563.webp" />
+          <small class="muted">Style the final image to harmonize with this jewelry in a regal Mughal aesthetic.</small>
+        </div>
+
+        <div class="field">
+          <label for="personImage">Person Image</label>
+          <input id="personImage" type="file" accept="image/*" />
+          <small class="muted">Use a clear, front-facing portrait for best results.</small>
+        </div>
+
+        <div class="field">
+          <label for="prompt">Prompt</label>
+          <textarea id="prompt" rows="6" placeholder="Describe the campaign style...">Create a high-end fashion campaign portrait in regal Mughal-era style. Preserve the person’s identity, skin tone, and facial structure. Apply styling and aesthetic inspired by the reference jewelry image: ornate, luxurious, refined lighting, editorial composition, premium color grading. 8k, photorealistic, studio quality.</textarea>
+        </div>
+
+        <div class="actions">
+          <button id="generateBtn" class="btn"><i class="fas fa-wand-magic-sparkles"></i><span>Generate</span></button>
+          <button id="downloadBtn" class="btn" disabled><i class="fas fa-download"></i><span>Download</span></button>
+          <span id="status" class="small muted"></span>
+        </div>
+        <div id="error" class="error"></div>
+      </section>
+
+      <section class="panel">
+        <h3 style="margin-top:0;">Output</h3>
+        <div class="preview">
+          <canvas id="previewCanvas"></canvas>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script type="module" src="./src/campaign.js"></script>
+</body>
+</html>
