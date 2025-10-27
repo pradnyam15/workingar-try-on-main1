@@ -30,9 +30,19 @@ export default async function handler(req, res) {
       }
     } catch {}
     const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent';
+
+    // Normalize person image: allow data URL or raw base64
+    let personMime = 'image/jpeg';
+    let personData = imageBase64;
+    const m = /^data:(image\/[a-zA-Z0-9+.-]+);base64,(.+)$/.exec(imageBase64 || '');
+    if (m) {
+      personMime = m[1];
+      personData = m[2];
+    }
+
     const parts = [
-      { text: `${prompt} Preserve the subject's identity. Style must harmonize with the reference jewelry.` },
-      { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } },
+      { text: `${prompt} Output a single image. Place the jewelry from the reference onto the subject. Do not alter the jewelry's appearance. Preserve the subject's identity.` },
+      { inline_data: { mime_type: personMime, data: personData } },
     ];
     if (typeof refBase64 === 'string' && refBase64.length > 0) {
       parts.push({ inline_data: { mime_type: refMime, data: refBase64 } });
@@ -40,8 +50,7 @@ export default async function handler(req, res) {
       parts.push({ text: `Reference jewelry image URL: ${refImageUrl}` });
     }
     const body = {
-      contents: [{ role: 'user', parts }],
-      generationConfig: { response_mime_type: 'image/png' }
+      contents: [{ role: 'user', parts }]
     };
     const r = await fetch(geminiUrl + `?key=${encodeURIComponent(geminiKey)}`, {
       method: 'POST',
