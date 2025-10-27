@@ -13,35 +13,59 @@ export default async function handler(req, res) {
     }
     // Prefer Stability AI if key is provided
     if (stabilityKey) {
-      // Build multipart form for image-to-image
+      // Build multipart form for image-to-image (Stability v1)
       const initBuffer = Buffer.from(imageBase64, 'base64');
       const form = new FormData();
-      form.append('prompt', `${prompt} Style harmonized with this reference jewelry: ${refImageUrl}. Preserve subject identity.`);
-      form.append('output_format', 'jpeg');
-      // Many Stability endpoints accept 'image' for init image
-      form.append('image', new Blob([initBuffer], { type: 'image/jpeg' }), 'init.jpg');
-      // Optional strength parameter (0..1). 0.35 is a safe default to preserve identity
-      form.append('strength', '0.35');
+      const fullPrompt = `${prompt} Style harmonized with this reference jewelry: ${refImageUrl}. Preserve subject identity.`;
+      form.append('init_image', new Blob([initBuffer], { type: 'image/jpeg' }), 'init.jpg');
+      form.append('image_strength', '0.35');
+      form.append('text_prompts[0][text]', fullPrompt);
+      form.append('cfg_scale', '7');
+      form.append('samples', '1');
+      form.append('steps', '30');
 
-      // Using v2beta stable-image edit endpoint for image-to-image
-      const stabilityUrl = 'https://api.stability.ai/v2beta/stable-image/edit';
-      const sr = await fetch(stabilityUrl, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${stabilityKey}`,
-          Accept: 'image/*',
-        },
-        body: form,
-      });
+      async function callStability(engine) {
+        const url = `https://api.stability.ai/v1/generation/${engine}/image-to-image`;
+        const resp = await fetch(url, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${stabilityKey}`,
+          },
+          body: form,
+        });
+        return resp;
+      }
+
+      let sr = await callStability('stable-diffusion-xl-1024-v1-0');
+      if (!sr.ok && (sr.status === 404 || sr.status === 400)) {
+        // Fallback to an older widely-available engine
+        sr = await callStability('stable-diffusion-v1-5');
+      }
       if (!sr.ok) {
         const errText = await sr.text();
         res.status(sr.status).json({ error: errText || 'Stability upstream error' });
         return;
       }
-      const ab = await sr.arrayBuffer();
-      const b64 = Buffer.from(ab).toString('base64');
-      res.status(200).json({ imageBase64: b64 });
-      return;
+      const ct = sr.headers.get('content-type') || '';
+      if (ct.startsWith('application/json')) {
+        const json = await sr.json();
+        const artifact = Array.isArray(json?.artifacts) ? json.artifacts.find(a => a?.base64) : null;
+        if (!artifact?.base64) {
+          res.status(502).json({ error: 'No image returned from Stability (json response)' });
+          return;
+        }
+        res.status(200).json({ imageBase64: artifact.base64 });
+        return;
+      } else if (ct.startsWith('image/')) {
+        const ab = await sr.arrayBuffer();
+        const b64 = Buffer.from(ab).toString('base64');
+        res.status(200).json({ imageBase64: b64 });
+        return;
+      } else {
+        const text = await sr.text();
+        res.status(502).json({ error: `Unexpected Stability response (${ct}): ${text}` });
+        return;
+      }
     }
 
     // Fallback to Gemini only if Stability key missing
