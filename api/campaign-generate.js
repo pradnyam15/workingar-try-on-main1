@@ -24,6 +24,8 @@ export default async function handler(req, res) {
       form.append('cfg_scale', '7');
       form.append('samples', '1');
       form.append('steps', '30');
+      form.append('width', '896');
+      form.append('height', '1152');
 
       async function callStability(engine) {
         const url = `https://api.stability.ai/v1/generation/${engine}/image-to-image`;
