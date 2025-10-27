@@ -10,12 +10,17 @@ export default async function handler(req, res) {
     const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '';
     const { prompt, refImageUrl, imageBase64 } = req.body || {};
     const provider = ((req.body && req.body.provider) || process.env.DEFAULT_PROVIDER || '').toLowerCase();
+    const useGemini = provider === 'gemini' || (
+      !provider && !!geminiKey && (
+        !stabilityKey || (process.env.DEFAULT_PROVIDER || '').toLowerCase() === 'gemini'
+      )
+    );
     if (!prompt || !imageBase64 || !refImageUrl) {
       res.status(400).json({ error: 'Missing prompt, imageBase64 or refImageUrl' });
       return;
     }
-    // Prefer Stability AI if key is provided, unless provider override forces Gemini
-    if (stabilityKey && provider !== 'gemini') {
+    // Use Stability only if not using Gemini
+    if (!useGemini && stabilityKey) {
       // Build multipart form for image-to-image (Stability v1)
       const personBuffer = Buffer.from(imageBase64, 'base64');
 
@@ -111,7 +116,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // Fallback to Gemini only if Stability key missing
+    // Gemini path (either explicitly chosen or fallback when available)
     if (!geminiKey) {
       res.status(500).json({ error: 'Missing STABILITY_API_KEY. Optionally set GEMINI_API_KEY/GOOGLE_API_KEY to use Gemini fallback.' });
       return;
