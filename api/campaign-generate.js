@@ -1,3 +1,5 @@
+import sharp from 'sharp';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -15,17 +17,20 @@ export default async function handler(req, res) {
     if (stabilityKey) {
       // Build multipart form for image-to-image (Stability v1)
       const initBuffer = Buffer.from(imageBase64, 'base64');
+      const resizedBuffer = await sharp(initBuffer)
+        .resize(896, 1152)
+        .jpeg()
+        .toBuffer();
+
       const form = new FormData();
       const fullPrompt = `${prompt} Style harmonized with this reference jewelry: ${refImageUrl}. Preserve subject identity.`;
-      form.append('init_image', new Blob([initBuffer], { type: 'image/jpeg' }), 'init.jpg');
+      form.append('init_image', new Blob([resizedBuffer], { type: 'image/jpeg' }), 'init.jpg');
       form.append('image_strength', '0.35');
       form.append('init_image_mode', 'IMAGE_STRENGTH');
       form.append('text_prompts[0][text]', fullPrompt);
       form.append('cfg_scale', '7');
       form.append('samples', '1');
       form.append('steps', '30');
-      form.append('width', '896');
-      form.append('height', '1152');
 
       async function callStability(engine) {
         const url = `https://api.stability.ai/v1/generation/${engine}/image-to-image`;
