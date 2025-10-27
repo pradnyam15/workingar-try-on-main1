@@ -26,19 +26,36 @@ export default async function handler(req, res) {
       const jewelryBuffer = Buffer.from(await jewelryImageResponse.arrayBuffer());
 
       // Composite the jewelry onto the person image
-      const compositedBuffer = await sharp(personBuffer)
-        .composite([{
-          input: jewelryBuffer,
-          gravity: 'center' // This will center the jewelry. You might need to adjust this.
-        }])
+      const baseResized = await sharp(personBuffer)
         .resize(896, 1152)
         .jpeg()
         .toBuffer();
 
+      const baseMeta = await sharp(baseResized).metadata();
+      const jewelMeta = await sharp(jewelryBuffer).metadata();
+
+      const maxW = Math.floor((baseMeta.width || 896) * 0.4);
+      const maxH = Math.floor((baseMeta.height || 1152) * 0.4);
+      let overlayBuf = jewelryBuffer;
+      if ((jewelMeta.width || 0) > maxW || (jewelMeta.height || 0) > maxH) {
+        overlayBuf = await sharp(jewelryBuffer)
+          .resize({ width: maxW, height: maxH, fit: 'inside', withoutEnlargement: true })
+          .toBuffer();
+      }
+
+      const overlayMeta = await sharp(overlayBuf).metadata();
+      const left = Math.max(0, Math.floor(((baseMeta.width || 896) - (overlayMeta.width || 0)) / 2));
+      const top = Math.max(0, Math.floor(((baseMeta.height || 1152) - (overlayMeta.height || 0)) / 2));
+
+      const compositedBuffer = await sharp(baseResized)
+        .composite([{ input: overlayBuf, left, top }])
+        .jpeg()
+        .toBuffer();
+
       const form = new FormData();
-      const fullPrompt = `${prompt}. Seamlessly blend the subject and the jewelry they are wearing. Preserve subject identity.`;
+      const fullPrompt = `${prompt}. The subject must be wearing the provided jewelry overlay. Do not alter the jewelry's appearance. Preserve subject identity.`;
       form.append('init_image', new Blob([compositedBuffer], { type: 'image/jpeg' }), 'init.jpg');
-      form.append('image_strength', '0.6');
+      form.append('image_strength', '0.25');
       form.append('init_image_mode', 'IMAGE_STRENGTH');
       form.append('text_prompts[0][text]', fullPrompt);
       form.append('cfg_scale', '7');
