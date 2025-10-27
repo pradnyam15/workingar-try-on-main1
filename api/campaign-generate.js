@@ -45,8 +45,7 @@ export default async function handler(req, res) {
           role: 'user',
           parts
         }
-      ],
-      generationConfig: { response_mime_type: 'image/jpeg' }
+      ]
     };
 
     const r = await fetch(url + `?key=${encodeURIComponent(apiKey)}`, {
@@ -63,10 +62,16 @@ export default async function handler(req, res) {
     }
     const data = contentType.includes('application/json') ? await r.json() : await r.text();
 
-    // Expected: candidates[0].content.parts[0].inline_data.data (base64)
+    // Find first image inline_data in parts
     let imageOut = '';
     try {
-      imageOut = data.candidates?.[0]?.content?.parts?.[0]?.inline_data?.data || '';
+      const parts = data.candidates?.[0]?.content?.parts || [];
+      for (const p of parts) {
+        if (p?.inline_data?.data && (p?.inline_data?.mime_type || '').startsWith('image/')) {
+          imageOut = p.inline_data.data;
+          break;
+        }
+      }
     } catch {}
     if (!imageOut) {
       res.status(502).json({ error: 'No image returned from AI Studio' });
