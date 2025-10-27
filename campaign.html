@@ -42,9 +42,13 @@
         <h3 style="margin-top:0;">Inputs</h3>
 
         <div class="field">
-          <label>Reference Jewelry (fixed)</label>
-          <img id="refImg" class="ref-image" alt="Reference jewelry" src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/PNS-MT563.webp" />
-          <small class="muted">Style the final image to harmonize with this jewelry in a regal Mughal aesthetic.</small>
+          <label>Reference Item</label>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="itemNecklace" type="button" class="btn" aria-pressed="true"><i class="fas fa-gem"></i><span>Necklace</span></button>
+            <button id="itemKurta" type="button" class="btn" aria-pressed="false"><i class="fas fa-shirt"></i><span>Kurta</span></button>
+          </div>
+          <img id="refImg" class="ref-image" alt="Reference item" src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/PNS-MT563.webp" />
+          <small class="muted">Style the final image to harmonize with the selected reference (necklace or kurta) in a regal Mughal aesthetic.</small>
         </div>
 
         <div class="field">
