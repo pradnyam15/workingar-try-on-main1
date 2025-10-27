@@ -38,9 +38,7 @@ export default async function handler(req, res) {
       }
 
       const engines = [
-        'stable-diffusion-xl-1024-v1-0',
-        'stable-diffusion-768-v2-1',
-        'stable-diffusion-512-v2-1',
+        'stable-diffusion-xl-1024-v1-0'
       ];
       let sr;
       for (const eng of engines) {
