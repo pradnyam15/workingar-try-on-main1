@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     }
 
     const parts = [
-      { text: `${prompt} Output a single image. Place the jewelry from the reference onto the subject. Do not alter the jewelry's appearance. Preserve the subject's identity.` },
+      { text: `${prompt}\n\nIdentity requirements:\n- Use the first image as the exact identity source.\n- Face must be immediately and unmistakably recognizable.\n- Preserve facial landmarks and proportions (eye distance, nose width, lip shape), skin tone, hairline, eye color/shape, and unique marks (moles, scars, facial hair).\n- Do not change age, ethnicity, face geometry, or body shape. No beautification that alters identity.\n\nJewelry/style requirements:\n- Apply the styling and aesthetic inspired by the reference jewelry only; do not modify the jewelry design.\n- Ornate, luxurious, refined lighting, editorial composition, premium color grading.\n\nOutput:\n- Produce a single photorealistic, studio-quality image suitable for high-end fashion/editorial.` },
       { inline_data: { mime_type: personMime, data: personData } },
     ];
     if (typeof refBase64 === 'string' && refBase64.length > 0) {
