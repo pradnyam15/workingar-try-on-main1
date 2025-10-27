@@ -9,12 +9,13 @@ export default async function handler(req, res) {
     const stabilityKey = process.env.STABILITY_API_KEY || '';
     const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '';
     const { prompt, refImageUrl, imageBase64 } = req.body || {};
+    const provider = ((req.body && req.body.provider) || process.env.DEFAULT_PROVIDER || '').toLowerCase();
     if (!prompt || !imageBase64 || !refImageUrl) {
       res.status(400).json({ error: 'Missing prompt, imageBase64 or refImageUrl' });
       return;
     }
-    // Prefer Stability AI if key is provided
-    if (stabilityKey) {
+    // Prefer Stability AI if key is provided, unless provider override forces Gemini
+    if (stabilityKey && provider !== 'gemini') {
       // Build multipart form for image-to-image (Stability v1)
       const personBuffer = Buffer.from(imageBase64, 'base64');
 
