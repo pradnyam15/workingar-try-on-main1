@@ -39,7 +39,10 @@ export default async function handler(req, res) {
     } else {
       parts.push({ text: `Reference jewelry image URL: ${refImageUrl}` });
     }
-    const body = { contents: [{ role: 'user', parts }] };
+    const body = {
+      contents: [{ role: 'user', parts }],
+      generationConfig: { response_mime_type: 'image/png' }
+    };
     const r = await fetch(geminiUrl + `?key=${encodeURIComponent(geminiKey)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -55,14 +58,19 @@ export default async function handler(req, res) {
     try {
       const partsOut = data.candidates?.[0]?.content?.parts || [];
       for (const p of partsOut) {
-        if (p?.inline_data?.data && (p?.inline_data?.mime_type || '').startsWith('image/')) {
-          imageOut = p.inline_data.data;
+        const inline = p?.inline_data || p?.inlineData;
+        const mt = (inline?.mime_type || inline?.mimeType || '');
+        if (inline?.data && mt.startsWith('image/')) {
+          imageOut = inline.data;
           break;
         }
       }
     } catch {}
     if (!imageOut) {
-      res.status(502).json({ error: 'No image returned from Gemini' });
+      const dbg = (() => {
+        try { return JSON.stringify(data).slice(0, 600); } catch { return ''; }
+      })();
+      res.status(502).json({ error: 'No image returned from Gemini', debug: dbg });
       return;
     }
     res.status(200).json({ imageBase64: imageOut });
