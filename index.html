@@ -28,27 +28,34 @@
         </a>
       </div>
       
-      <details class="mode-selector" open>
-        <summary>Categories</summary>
-        <div class="mode-buttons">
-          <button class="mode-btn active" data-mode="rings">
-            <i class="fas fa-ring"></i>
-            <span>Rings</span>
-          </button>
-          <button class="mode-btn" data-mode="sunglasses">
-            <i class="fas fa-sun"></i>
-            <span>Sunglasses</span>
-          </button>
-          <button class="mode-btn" data-mode="earrings">
-            <i class="fas fa-gem"></i>
-            <span>Earrings</span>
-          </button>
-          <button class="mode-btn" data-mode="necklace">
-            <i class="fas fa-gem" style="transform: rotate(45deg); display: inline-block;"></i>
-            <span>Necklace</span>
-          </button>
+      <!-- Main Category Dropdown -->
+      <div class="dropdown-selector" id="categorySelector">
+        <div class="dropdown-header">
+          <i class="fas fa-ring"></i>
+          <span>Select Category</span>
+          <i class="fas fa-chevron-down"></i>
         </div>
-      </details>
+        <div class="dropdown-content">
+          <div class="category-options">
+            <button class="category-option active" data-mode="rings">
+              <i class="fas fa-ring"></i>
+              <span>Rings</span>
+            </button>
+            <button class="category-option" data-mode="sunglasses">
+              <i class="fas fa-sun"></i>
+              <span>Sunglasses</span>
+            </button>
+            <button class="category-option" data-mode="earrings">
+              <i class="fas fa-gem"></i>
+              <span>Earrings</span>
+            </button>
+            <button class="category-option" data-mode="necklace">
+              <i class="fas fa-gem" style="transform: rotate(45deg); display: inline-block;"></i>
+              <span>Necklace</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <details open>
         <summary>Size</summary>
@@ -81,31 +88,38 @@
         </div>
       </div>
 
-      <details class="item-selector" id="glassesSelector">
-        <summary>Sunglasses Styles</summary>
-        <div class="item-buttons">
-          <button class="item-btn glasses-btn active" data-glasses="aviators-105130">
-            <i class="fas fa-sun"></i>
-            <span>Aviator Gold</span>
-          </button>
-          <button class="item-btn glasses-btn" data-glasses="aviators-105839">
-            <i class="fas fa-sun"></i>
-            <span>Aviator Silver</span>
-          </button>
-          <button class="item-btn glasses-btn" data-glasses="chasma-248748">
-            <i class="fas fa-glasses"></i>
-            <span>Classic</span>
-          </button>
-          <button class="item-btn glasses-btn" data-glasses="round-glasses-2333295">
-            <i class="fas fa-glasses"></i>
-            <span>Round</span>
-          </button>
-          <button class="item-btn glasses-btn" data-glasses="sunglasses-vector-5936502">
-            <i class="fas fa-glasses" style="font-size: 1.1em;"></i>
-            <span>Modern</span>
-          </button>
+      <!-- Sunglasses Styles Dropdown (initially hidden) -->
+      <div class="dropdown-selector item-selector" id="glassesSelector">
+        <div class="dropdown-header">
+          <i class="fas fa-sun"></i>
+          <span>Sunglasses Styles</span>
+          <i class="fas fa-chevron-down"></i>
         </div>
-      </details>
+        <div class="dropdown-content">
+          <div class="item-grid">
+            <button class="glasses-option active" data-glasses="aviators-105130">
+              <i class="fas fa-sun"></i>
+              <span>Aviator Gold</span>
+            </button>
+            <button class="glasses-option" data-glasses="aviators-105839">
+              <i class="fas fa-sun"></i>
+              <span>Aviator Silver</span>
+            </button>
+            <button class="glasses-option" data-glasses="chasma-248748">
+              <i class="fas fa-glasses"></i>
+              <span>Classic</span>
+            </button>
+            <button class="glasses-option" data-glasses="round-glasses-2333295">
+              <i class="fas fa-glasses"></i>
+              <span>Round</span>
+            </button>
+            <button class="glasses-option" data-glasses="sunglasses-vector-5936502">
+              <i class="fas fa-glasses"></i>
+              <span>Modern</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <button id="toggleControls" aria-label="Toggle controls">
