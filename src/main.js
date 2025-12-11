@@ -59,7 +59,7 @@ applyControlsResponsiveState();
 let sizeScalePct = 100;
 
 let currentColor = 'diamond-ring-1707837';
-let currentMode = 'rings'; // 'rings' | 'sunglasses'
+let currentMode = 'rings'; // 'rings' | 'sunglasses' | 'earrings' | 'necklace'
 let currentGlasses = 'aviators-105130';
 
 // Color palettes for procedural ring rendering
@@ -376,7 +376,6 @@ function drawRing(centerX, centerY, radius, angle, color) {
 const categorySelector = document.getElementById('categorySelector');
 const ringSelector = document.getElementById('ringSelector');
 const glassesSelector = document.getElementById('glassesSelector');
-let currentMode = 'rings'; // Default mode
 
 // Show the appropriate selector based on current mode
 function updateSelectors() {
