@@ -58,23 +58,28 @@
         </div>
       </details>
 
-      <details class="item-selector" id="ringSelector" open>
-        <summary>Ring Styles</summary>
-        <div class="item-buttons">
-          <button class="item-btn ring-btn active" data-color="diamond-ring-1707837">
-            <i class="fas fa-gem"></i>
-            <span>Diamond Ring</span>
-          </button>
-          <button class="item-btn ring-btn" data-color="loose-diamonds-2037252">
-            <i class="fas fa-gem"></i>
-            <span>Loose Diamonds</span>
-          </button>
-          <button class="item-btn ring-btn" data-color="laurel-leaf-6893709">
-            <i class="fas fa-leaf"></i>
-            <span>Laurel Leaf</span>
-          </button>
+      <div class="dropdown-selector" id="ringSelector">
+        <div class="dropdown-header">
+          <span>Ring Styles</span>
+          <i class="fas fa-chevron-down"></i>
         </div>
-      </details>
+        <div class="dropdown-content">
+          <div class="ring-grid">
+            <button class="ring-option active" data-color="diamond-ring-1707837">
+              <div class="ring-preview">💍</div>
+              <span>Diamond</span>
+            </button>
+            <button class="ring-option" data-color="loose-diamonds-2037252">
+              <div class="ring-preview">💎</div>
+              <span>Loose Diamonds</span>
+            </button>
+            <button class="ring-option" data-color="laurel-leaf-6893709">
+              <div class="ring-preview">🍃</div>
+              <span>Laurel Leaf</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <details class="item-selector" id="glassesSelector">
         <summary>Sunglasses Styles</summary>

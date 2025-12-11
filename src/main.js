@@ -131,47 +131,74 @@ function loadRingForKey(key) {
 
 for (const key of Object.keys(RINGS)) loadRingForKey(key);
 
-// Button interactions - Using event delegation for better reliability
-const handleRingButtonClick = (e) => {
-  const ringBtn = e.target.closest('.ring-btn');
-  if (!ringBtn) return;
+// Toggle dropdown functionality
+const ringSelector = document.getElementById('ringSelector');
+const dropdownHeader = ringSelector?.querySelector('.dropdown-header');
+
+if (dropdownHeader) {
+  dropdownHeader.addEventListener('click', () => {
+    ringSelector.classList.toggle('active');
+  });
+}
+
+// Close dropdown when clicking outside
+window.addEventListener('click', (e) => {
+  if (!ringSelector.contains(e.target) && !e.target.closest('.ring-option')) {
+    ringSelector.classList.remove('active');
+  }
+});
+
+// Handle ring selection
+const handleRingSelection = (ringOption) => {
+  const key = ringOption.dataset.color;
   
-  // Validate selection before updating UI/selection
-  const key = ringBtn.dataset.color;
-  // If the selected key is not in RINGS (e.g., removed), avoid showing loading for a non-existent image
+  // If the selected key is not in RINGS, show error
   if (!(key in RINGS)) {
-    statusEl.textContent = `Selected: ${ringBtn.textContent.trim()}`;
+    statusEl.textContent = `Error: Ring style not available`;
     setTimeout(() => { statusEl.style.display = 'none'; }, 1500);
     return;
   }
+  
+  // Update current color and UI
   currentColor = key;
   
-  // Update active state after validation
-  document.querySelectorAll('.ring-btn').forEach(b => b.classList.remove('active'));
-  ringBtn.classList.add('active');
+  // Update active state
+  document.querySelectorAll('.ring-option').forEach(opt => {
+    opt.classList.remove('active');
+  });
+  ringOption.classList.add('active');
+  
+  // Update dropdown header text
+  const ringName = ringOption.querySelector('span')?.textContent || 'Ring';
   
   // Show loading status if needed
   if (!ringReadyMap[currentColor]) {
-    statusEl.textContent = `Loading ${ringBtn.textContent.trim()}...`;
+    statusEl.textContent = `Loading ${ringName}...`;
     statusEl.style.display = 'block';
   } else {
-    statusEl.textContent = `Selected: ${ringBtn.textContent.trim()}`;
+    statusEl.textContent = `Selected: ${ringName}`;
     setTimeout(() => { statusEl.style.display = 'none'; }, 1500);
   }
+  
+  // Close dropdown after selection (optional)
+  ringSelector.classList.remove('active');
 };
 
-// Use event delegation for ring buttons
+// Use event delegation for ring options
 document.addEventListener('click', (e) => {
-  if (e.target.closest('.ring-btn')) {
-    handleRingButtonClick(e);
+  const ringOption = e.target.closest('.ring-option');
+  if (ringOption) {
+    e.preventDefault();
+    handleRingSelection(ringOption);
   }
 });
 
 // Also handle touch events for better mobile support
 document.addEventListener('touchend', (e) => {
-  if (e.target.closest('.ring-btn')) {
+  const ringOption = e.target.closest('.ring-option');
+  if (ringOption) {
     e.preventDefault();
-    handleRingButtonClick(e);
+    handleRingSelection(ringOption);
   }
 }, { passive: false });
 
