@@ -56,10 +56,75 @@ document.addEventListener('click', (e) => {
 window.addEventListener('resize', applyControlsResponsiveState);
 applyControlsResponsiveState();
 
+// Ring selector functionality
+function initRingSelector() {
+  const dropdownToggle = document.getElementById('ringDropdownToggle');
+  const dropdownMenu = document.getElementById('ringDropdownMenu');
+  const ringOptions = document.querySelectorAll('.ring-option');
+  const selectedRing = document.querySelector('.selected-ring');
+  
+  if (!dropdownToggle || !dropdownMenu || ringOptions.length === 0 || !selectedRing) return;
+  
+  // Toggle dropdown
+  dropdownToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isExpanded = dropdownToggle.getAttribute('aria-expanded') === 'true';
+    dropdownToggle.setAttribute('aria-expanded', !isExpanded);
+    dropdownMenu.classList.toggle('show', !isExpanded);
+  });
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+      dropdownToggle.setAttribute('aria-expanded', 'false');
+      dropdownMenu.classList.remove('show');
+    }
+  });
+  
+  // Handle ring selection
+  ringOptions.forEach(option => {
+    option.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const color = option.getAttribute('data-color');
+      const name = option.querySelector('.ring-option-name').textContent;
+      const imgSrc = option.querySelector('.ring-option-image').src;
+      
+      // Update selected ring display
+      selectedRing.innerHTML = `
+        <img src="${imgSrc}" alt="${name}" class="ring-thumbnail">
+        <span>${name}</span>
+      `;
+      
+      // Update current color
+      currentColor = color;
+      
+      // Close dropdown
+      dropdownToggle.setAttribute('aria-expanded', 'false');
+      dropdownMenu.classList.remove('show');
+      
+      // Reset smoothing when changing rings
+      smoothX = null;
+      smoothY = null;
+      smoothAngle = null;
+      smoothR = null;
+      
+      statusEl.textContent = `Selected: ${name}`;
+      setTimeout(() => {
+        statusEl.textContent = 'Ready';
+      }, 2000);
+    });
+  });
+}
+
+// Initialize ring selector when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  initRingSelector();
+});
+
 let sizeScalePct = 100;
 
 let currentColor = 'diamond-ring-1707837';
-let currentMode = 'rings'; // 'rings' | 'sunglasses' | 'earrings' | 'necklace'
+let currentMode = 'rings'; // 'rings' | 'sunglasses'
 let currentGlasses = 'aviators-105130';
 
 // Color palettes for procedural ring rendering
@@ -131,120 +196,49 @@ function loadRingForKey(key) {
 
 for (const key of Object.keys(RINGS)) loadRingForKey(key);
 
-// Initialize dropdown toggles
-function initDropdown(selector) {
-  const dropdown = document.querySelector(selector);
-  if (!dropdown) return;
+// Button interactions - Using event delegation for better reliability
+const handleRingButtonClick = (e) => {
+  const ringBtn = e.target.closest('.ring-btn');
+  if (!ringBtn) return;
   
-  const header = dropdown.querySelector('.dropdown-header');
-  if (!header) return;
-  
-  header.addEventListener('click', (e) => {
-    e.stopPropagation();
-    // Close all other dropdowns
-    document.querySelectorAll('.dropdown-selector').forEach(d => {
-      if (d !== dropdown) d.classList.remove('active');
-    });
-    // Toggle current dropdown
-    dropdown.classList.toggle('active');
-  });
-}
-
-// Initialize all dropdowns
-initDropdown('#ringSelector');
-initDropdown('#glassesSelector');
-initDropdown('#categorySelector');
-
-// Handle item selection (rings, glasses, etc.)
-function handleItemSelection(option, type) {
-  let key, name, statusText;
-  
-  if (type === 'ring') {
-    key = option.dataset.color;
-    name = option.querySelector('span')?.textContent || 'Ring';
-    
-    // If the selected key is not in RINGS, show error
-    if (!(key in RINGS)) {
-      statusEl.textContent = `Error: ${name} style not available`;
-      setTimeout(() => { statusEl.style.display = 'none'; }, 1500);
-      return;
-    }
-    
-    // Update current color and UI
-    currentColor = key;
-    statusText = `Selected: ${name}`;
-    
-    // Update active state for ring options
-    document.querySelectorAll('.ring-option').forEach(opt => {
-      opt.classList.remove('active');
-    });
-    
-  } else if (type === 'glasses') {
-    key = option.dataset.glasses;
-    name = option.querySelector('span')?.textContent || 'Sunglasses';
-    currentGlasses = key;
-    statusText = `Selected: ${name}`;
-    
-    // Update active state for glasses options
-    document.querySelectorAll('.glasses-option').forEach(opt => {
-      opt.classList.remove('active');
-    });
+  // Validate selection before updating UI/selection
+  const key = ringBtn.dataset.color;
+  // If the selected key is not in RINGS (e.g., removed), avoid showing loading for a non-existent image
+  if (!(key in RINGS)) {
+    statusEl.textContent = `Selected: ${ringBtn.textContent.trim()}`;
+    setTimeout(() => { statusEl.style.display = 'none'; }, 1500);
+    return;
   }
+  currentColor = key;
   
-  // Update the active state for the selected option
-  option.classList.add('active');
+  // Update active state after validation
+  document.querySelectorAll('.ring-btn').forEach(b => b.classList.remove('active'));
+  ringBtn.classList.add('active');
   
-  // Update status
-  statusEl.textContent = statusText;
-  statusEl.style.display = 'block';
-  setTimeout(() => { statusEl.style.display = 'none'; }, 1500);
-  
-  // Close dropdown after selection
-  option.closest('.dropdown-selector')?.classList.remove('active');
-}
+  // Show loading status if needed
+  if (!ringReadyMap[currentColor]) {
+    statusEl.textContent = `Loading ${ringBtn.textContent.trim()}...`;
+    statusEl.style.display = 'block';
+  } else {
+    statusEl.textContent = `Selected: ${ringBtn.textContent.trim()}`;
+    setTimeout(() => { statusEl.style.display = 'none'; }, 1500);
+  }
+};
 
-// Use event delegation for all item options
+// Use event delegation for ring buttons
 document.addEventListener('click', (e) => {
-  // Handle ring selection
-  const ringOption = e.target.closest('.ring-option');
-  if (ringOption) {
-    e.preventDefault();
-    handleItemSelection(ringOption, 'ring');
-    return;
-  }
-  
-  // Handle glasses selection
-  const glassesOption = e.target.closest('.glasses-option');
-  if (glassesOption) {
-    e.preventDefault();
-    handleItemSelection(glassesOption, 'glasses');
-    return;
-  }
-  
-  // Close dropdowns when clicking outside
-  if (!e.target.closest('.dropdown-selector') && !e.target.closest('.dropdown-content')) {
-    document.querySelectorAll('.dropdown-selector').forEach(dropdown => {
-      dropdown.classList.remove('active');
-    });
+  if (e.target.closest('.ring-btn')) {
+    handleRingButtonClick(e);
   }
 });
 
 // Also handle touch events for better mobile support
 document.addEventListener('touchend', (e) => {
-  const ringOption = e.target.closest('.ring-option');
-  const glassesOption = e.target.closest('.glasses-option');
-  
-  if (ringOption) {
+  if (e.target.closest('.ring-btn')) {
     e.preventDefault();
-    handleItemSelection(ringOption, 'ring');
-  } else if (glassesOption) {
-    e.preventDefault();
-    handleItemSelection(glassesOption, 'glasses');
+    handleRingButtonClick(e);
   }
 }, { passive: false });
-
-// Initialize the UI
-updateSelectors();
 
 if (sizeSlider) {
   const applySizeUI = () => {
@@ -371,75 +365,6 @@ function drawRing(centerX, centerY, radius, angle, color) {
   ctx.stroke();
   ctx.restore();
 }
-
-// Initialize category and mode handling
-const categorySelector = document.getElementById('categorySelector');
-const ringSelector = document.getElementById('ringSelector');
-const glassesSelector = document.getElementById('glassesSelector');
-
-// Show the appropriate selector based on current mode
-function updateSelectors() {
-  // Hide all selectors first
-  document.querySelectorAll('.item-selector').forEach(el => {
-    el.style.display = 'none';
-  });
-  
-  // Show the active selector
-  if (currentMode === 'rings') {
-    ringSelector.style.display = 'block';
-  } else if (currentMode === 'sunglasses') {
-    glassesSelector.style.display = 'block';
-  }
-  // Add other modes (earrings, necklace) as needed
-}
-
-// Category selection
-if (categorySelector) {
-  const categoryHeader = categorySelector.querySelector('.dropdown-header');
-  const categoryOptions = categorySelector.querySelectorAll('.category-option');
-  
-  categoryHeader?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    categorySelector.classList.toggle('active');
-  });
-  
-  categoryOptions.forEach(option => {
-    option.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Update active state
-      categoryOptions.forEach(opt => opt.classList.remove('active'));
-      option.classList.add('active');
-      
-      // Update current mode and UI
-      currentMode = option.dataset.mode;
-      updateSelectors();
-      
-      // Update category header
-      const icon = option.querySelector('i').cloneNode(true);
-      const text = option.querySelector('span').textContent;
-      
-      const header = categorySelector.querySelector('.dropdown-header');
-      header.innerHTML = '';
-      header.appendChild(icon);
-      header.innerHTML += `<span>${text}</span>`;
-      header.innerHTML += '<i class="fas fa-chevron-down"></i>';
-      
-      // Close dropdown
-      categorySelector.classList.remove('active');
-    });
-  });
-}
-
-// Close dropdowns when clicking outside
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.dropdown-selector')) {
-    document.querySelectorAll('.dropdown-selector').forEach(dropdown => {
-      dropdown.classList.remove('active');
-    });
-  }
-});
 
 // MediaPipe Hands
 const hands = new Hands({

@@ -28,34 +28,27 @@
         </a>
       </div>
       
-      <!-- Main Category Dropdown -->
-      <div class="dropdown-selector" id="categorySelector">
-        <div class="dropdown-header">
-          <i class="fas fa-ring"></i>
-          <span>Select Category</span>
-          <i class="fas fa-chevron-down"></i>
+      <details class="mode-selector" open>
+        <summary>Categories</summary>
+        <div class="mode-buttons">
+          <button class="mode-btn active" data-mode="rings">
+            <i class="fas fa-ring"></i>
+            <span>Rings</span>
+          </button>
+          <button class="mode-btn" data-mode="sunglasses">
+            <i class="fas fa-sun"></i>
+            <span>Sunglasses</span>
+          </button>
+          <button class="mode-btn" data-mode="earrings">
+            <i class="fas fa-gem"></i>
+            <span>Earrings</span>
+          </button>
+          <button class="mode-btn" data-mode="necklace">
+            <i class="fas fa-gem" style="transform: rotate(45deg); display: inline-block;"></i>
+            <span>Necklace</span>
+          </button>
         </div>
-        <div class="dropdown-content">
-          <div class="category-options">
-            <button class="category-option active" data-mode="rings">
-              <i class="fas fa-ring"></i>
-              <span>Rings</span>
-            </button>
-            <button class="category-option" data-mode="sunglasses">
-              <i class="fas fa-sun"></i>
-              <span>Sunglasses</span>
-            </button>
-            <button class="category-option" data-mode="earrings">
-              <i class="fas fa-gem"></i>
-              <span>Earrings</span>
-            </button>
-            <button class="category-option" data-mode="necklace">
-              <i class="fas fa-gem" style="transform: rotate(45deg); display: inline-block;"></i>
-              <span>Necklace</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      </details>
 
       <details open>
         <summary>Size</summary>
@@ -65,61 +58,59 @@
         </div>
       </details>
 
-      <div class="dropdown-selector" id="ringSelector">
-        <div class="dropdown-header">
-          <span>Ring Styles</span>
-          <i class="fas fa-chevron-down"></i>
-        </div>
-        <div class="dropdown-content">
-          <div class="ring-grid">
-            <button class="ring-option active" data-color="diamond-ring-1707837">
-              <div class="ring-preview">💍</div>
-              <span>Diamond</span>
-            </button>
-            <button class="ring-option" data-color="loose-diamonds-2037252">
-              <div class="ring-preview">💎</div>
-              <span>Loose Diamonds</span>
-            </button>
-            <button class="ring-option" data-color="laurel-leaf-6893709">
-              <div class="ring-preview">🍃</div>
-              <span>Laurel Leaf</span>
-            </button>
+      <div class="ring-selector" id="ringSelector">
+        <div class="ring-dropdown">
+          <button class="ring-dropdown-toggle" id="ringDropdownToggle" aria-expanded="false">
+            <span class="selected-ring">
+              <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-diamond-ring-png-1707837.png" alt="Diamond Ring" class="ring-thumbnail">
+              <span>Diamond Ring</span>
+            </span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="ring-dropdown-menu" id="ringDropdownMenu">
+            <div class="ring-options">
+              <div class="ring-option" data-color="diamond-ring-1707837">
+                <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-diamond-ring-png-1707837.png" alt="Diamond Ring" class="ring-option-image">
+                <span class="ring-option-name">Diamond Ring</span>
+              </div>
+              <div class="ring-option" data-color="loose-diamonds-2037252">
+                <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-loose-diamonds-png-2037252.png" alt="Loose Diamonds" class="ring-option-image">
+                <span class="ring-option-name">Loose Diamonds</span>
+              </div>
+              <div class="ring-option" data-color="laurel-leaf-6893709">
+                <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-laurel-leaf-png-6893709.png" alt="Laurel Leaf" class="ring-option-image">
+                <span class="ring-option-name">Laurel Leaf</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Sunglasses Styles Dropdown (initially hidden) -->
-      <div class="dropdown-selector item-selector" id="glassesSelector">
-        <div class="dropdown-header">
-          <i class="fas fa-sun"></i>
-          <span>Sunglasses Styles</span>
-          <i class="fas fa-chevron-down"></i>
+      <details class="item-selector" id="glassesSelector">
+        <summary>Sunglasses Styles</summary>
+        <div class="item-buttons">
+          <button class="item-btn glasses-btn active" data-glasses="aviators-105130">
+            <i class="fas fa-sun"></i>
+            <span>Aviator Gold</span>
+          </button>
+          <button class="item-btn glasses-btn" data-glasses="aviators-105839">
+            <i class="fas fa-sun"></i>
+            <span>Aviator Silver</span>
+          </button>
+          <button class="item-btn glasses-btn" data-glasses="chasma-248748">
+            <i class="fas fa-glasses"></i>
+            <span>Classic</span>
+          </button>
+          <button class="item-btn glasses-btn" data-glasses="round-glasses-2333295">
+            <i class="fas fa-glasses"></i>
+            <span>Round</span>
+          </button>
+          <button class="item-btn glasses-btn" data-glasses="sunglasses-vector-5936502">
+            <i class="fas fa-glasses" style="font-size: 1.1em;"></i>
+            <span>Modern</span>
+          </button>
         </div>
-        <div class="dropdown-content">
-          <div class="item-grid">
-            <button class="glasses-option active" data-glasses="aviators-105130">
-              <i class="fas fa-sun"></i>
-              <span>Aviator Gold</span>
-            </button>
-            <button class="glasses-option" data-glasses="aviators-105839">
-              <i class="fas fa-sun"></i>
-              <span>Aviator Silver</span>
-            </button>
-            <button class="glasses-option" data-glasses="chasma-248748">
-              <i class="fas fa-glasses"></i>
-              <span>Classic</span>
-            </button>
-            <button class="glasses-option" data-glasses="round-glasses-2333295">
-              <i class="fas fa-glasses"></i>
-              <span>Round</span>
-            </button>
-            <button class="glasses-option" data-glasses="sunglasses-vector-5936502">
-              <i class="fas fa-glasses"></i>
-              <span>Modern</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      </details>
     </div>
   </div>
   <button id="toggleControls" aria-label="Toggle controls">
