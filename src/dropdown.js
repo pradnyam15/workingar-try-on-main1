@@ -4,6 +4,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const ringsButton = document.getElementById('ringsDropdown');
   const ringOptions = document.querySelectorAll('.ring-option');
   
+  // Make sure the dropdown is visible
+  ringsButton.style.display = 'flex';
+  ringsButton.style.alignItems = 'center';
+  ringsButton.style.justifyContent = 'space-between';
+  ringsButton.style.width = '100%';
+  
   // Toggle dropdown
   ringsButton.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -20,6 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Handle ring selection
   ringOptions.forEach(option => {
+    // Make sure option is visible and clickable
+    option.style.display = 'flex';
+    option.style.flexDirection = 'column';
+    option.style.alignItems = 'center';
+    option.style.cursor = 'pointer';
+    
     option.addEventListener('click', (e) => {
       e.stopPropagation();
       const color = option.dataset.color;
@@ -53,7 +65,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Prevent dropdown from closing when clicking inside
-  document.querySelector('.dropdown-menu').addEventListener('click', (e) => {
-    e.stopPropagation();
-  });
+  const dropdownMenu = document.querySelector('.dropdown-menu');
+  if (dropdownMenu) {
+    dropdownMenu.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
+  
+  // Initialize first ring as active
+  if (ringOptions.length > 0) {
+    ringOptions[0].classList.add('active');
+  }
 });
