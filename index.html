@@ -31,10 +31,29 @@
       <details class="mode-selector" open>
         <summary>Categories</summary>
         <div class="mode-buttons">
-          <button class="mode-btn active" data-mode="rings">
-            <i class="fas fa-ring"></i>
-            <span>Rings</span>
-          </button>
+          <div class="dropdown">
+            <button class="mode-btn dropdown-toggle active" data-mode="rings" id="ringsDropdown" aria-expanded="false">
+              <i class="fas fa-ring"></i>
+              <span>Rings</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu ring-dropdown-menu" aria-labelledby="ringsDropdown">
+              <div class="ring-options-grid">
+                <div class="ring-option" data-color="diamond-ring-1707837">
+                  <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-diamond-ring-png-1707837.png" alt="Diamond Ring" class="ring-option-image">
+                  <span class="ring-option-name">Diamond Ring</span>
+                </div>
+                <div class="ring-option" data-color="loose-diamonds-2037252">
+                  <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-loose-diamonds-png-2037252.png" alt="Loose Diamonds" class="ring-option-image">
+                  <span class="ring-option-name">Loose Diamonds</span>
+                </div>
+                <div class="ring-option" data-color="laurel-leaf-6893709">
+                  <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-laurel-leaf-png-6893709.png" alt="Laurel Leaf" class="ring-option-image">
+                  <span class="ring-option-name">Laurel Leaf</span>
+                </div>
+              </div>
+            </div>
+          </div>
           <button class="mode-btn" data-mode="sunglasses">
             <i class="fas fa-sun"></i>
             <span>Sunglasses</span>
@@ -58,32 +77,8 @@
         </div>
       </details>
 
-      <div class="ring-selector" id="ringSelector">
-        <div class="ring-dropdown">
-          <button class="ring-dropdown-toggle" id="ringDropdownToggle" aria-expanded="false">
-            <span class="selected-ring">
-              <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-diamond-ring-png-1707837.png" alt="Diamond Ring" class="ring-thumbnail">
-              <span>Diamond Ring</span>
-            </span>
-            <i class="fas fa-chevron-down"></i>
-          </button>
-          <div class="ring-dropdown-menu" id="ringDropdownMenu">
-            <div class="ring-options">
-              <div class="ring-option" data-color="diamond-ring-1707837">
-                <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-diamond-ring-png-1707837.png" alt="Diamond Ring" class="ring-option-image">
-                <span class="ring-option-name">Diamond Ring</span>
-              </div>
-              <div class="ring-option" data-color="loose-diamonds-2037252">
-                <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-loose-diamonds-png-2037252.png" alt="Loose Diamonds" class="ring-option-image">
-                <span class="ring-option-name">Loose Diamonds</span>
-              </div>
-              <div class="ring-option" data-color="laurel-leaf-6893709">
-                <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-laurel-leaf-png-6893709.png" alt="Laurel Leaf" class="ring-option-image">
-                <span class="ring-option-name">Laurel Leaf</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="ring-selector" id="ringSelector" style="display: none;">
+        <!-- This is now hidden as we've moved the ring selection to the Rings dropdown -->
       </div>
 
       <details class="item-selector" id="glassesSelector">
@@ -129,5 +124,6 @@
 
   <!-- App entry -->
   <script type="module" src="./src/main.js"></script>
+  <script src="./src/dropdown.js"></script>
 </body>
 </html>
