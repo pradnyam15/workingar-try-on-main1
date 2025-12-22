@@ -82,9 +82,9 @@ const metalColors = {
 
 // External PNG ring images (distinct per option)
 const RINGS = {
-  'diamond-ring-1707837': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-diamond-ring-png-1707837.png',
-  'loose-diamonds-2037252': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-loose-diamonds-png-2037252.png',
-  'laurel-leaf-6893709': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-laurel-leaf-png-6893709.png'
+  'diamond-ring-1707837': 'https://cdn.pixabay.com/photo/2016/10/15/05/23/diamond-ring-1707837_1280.png',
+  'loose-diamonds-2037252': 'https://cdn.pixabay.com/photo/2017/01/31/22/14/loose-diamonds-2037252_1280.png',
+  'laurel-leaf-6893709': 'https://cdn.pixabay.com/photo/2021/11/22/13/47/laurel-leaf-6893709_1280.png'
 };
 const ringImgs = Object.fromEntries(Object.keys(RINGS).map(k => [k, new Image()]));
 const ringReadyMap = Object.fromEntries(Object.keys(RINGS).map(k => [k, false]));
@@ -114,77 +114,101 @@ function tryLoadImage(img, url, { useCORS, noReferrer }) {
 
 function loadRingForKey(key) {
   const img = ringImgs[key];
-  let attempted = 0;
-  const strategies = [
-    { useCORS: true, noReferrer: true, url: RINGS[key] },
-    { useCORS: false, noReferrer: true, url: RINGS[key] },
-    { useCORS: false, noReferrer: false, url: RINGS[key] }
-  ];
-
+  if (!img) return;
+  
+  // Set up the image with CORS and no-referrer
+  img.crossOrigin = 'anonymous';
+  img.referrerPolicy = 'no-referrer';
+  
   img.onload = async () => {
-    try { if (img.decode) await img.decode(); } catch {}
-    ringReadyMap[key] = true;
-    console.log(`Ring image ready for ${key} (strategy ${attempted})`);
-    statusEl.textContent = `Ring image loaded (${key})`;
-  };
-  img.onerror = () => {
-    console.warn(`Ring image load failed for ${key} (strategy ${attempted}), retrying...`);
-    statusEl.textContent = `Loading ring image... (attempt ${attempted + 2})`;
-    attempted += 1;
-    if (attempted < strategies.length) {
-      tryLoadImage(img, strategies[attempted].url, strategies[attempted]);
+    try {
+      if (img.decode) await img.decode();
+      ringReadyMap[key] = true;
+      console.log(`Ring image loaded: ${key}`);
+      statusEl.textContent = `Ring loaded: ${key.replace(/-/g, ' ').replace(/\d+/g, '')}`;
+      
+      // Redraw if this is the current ring
+      if (key === currentColor && video.videoWidth) {
+        requestAnimationFrame(draw);
+      }
+    } catch (error) {
+      console.error('Error loading ring image:', error);
+      statusEl.textContent = 'Error loading ring image';
     }
   };
-
-  // kick off first attempt
-  tryLoadImage(img, strategies[attempted].url, strategies[attempted]);
+  
+  img.onerror = (error) => {
+    console.error(`Failed to load ring image: ${key}`, error);
+    statusEl.textContent = `Failed to load: ${key.replace(/-/g, ' ').replace(/\d+/g, '')}`;
+  };
+  
+  // Start loading the image with cache busting
+  img.src = `${RINGS[key]}?v=${Date.now()}`;
+  
+  // Also preload the image in the preview
+  if (key === currentColor) {
+    const previewImg = document.getElementById('ringPreview');
+    if (previewImg) {
+      previewImg.src = RINGS[key];
+    }
+  }
 }
 
 for (const key of Object.keys(RINGS)) loadRingForKey(key);
 
-// Button interactions - Using event delegation for better reliability
-const handleRingButtonClick = (e) => {
-  const ringBtn = e.target.closest('.ring-btn');
-  if (!ringBtn) return;
+// Handle ring selection from dropdown
+function handleRingSelection() {
+  const dropdown = document.getElementById('ringDropdown');
+  if (!dropdown) return;
   
-  // Validate selection before updating UI/selection
-  const key = ringBtn.dataset.color;
-  // If the selected key is not in RINGS (e.g., removed), avoid showing loading for a non-existent image
-  if (!(key in RINGS)) {
-    statusEl.textContent = `Selected: ${ringBtn.textContent.trim()}`;
-    setTimeout(() => { statusEl.style.display = 'none'; }, 1500);
-    return;
+  const selectedOption = dropdown.options[dropdown.selectedIndex];
+  const key = selectedOption.value;
+  
+  // Update preview image and name
+  const previewImg = document.getElementById('ringPreview');
+  const ringName = document.getElementById('ringName');
+  
+  if (previewImg && ringName) {
+    previewImg.src = selectedOption.dataset.image;
+    ringName.textContent = selectedOption.text;
   }
-  currentColor = key;
   
-  // Update active state after validation
-  document.querySelectorAll('.ring-btn').forEach(b => b.classList.remove('active'));
-  ringBtn.classList.add('active');
-  
-  // Show loading status if needed
-  if (!ringReadyMap[currentColor]) {
-    statusEl.textContent = `Loading ${ringBtn.textContent.trim()}...`;
-    statusEl.style.display = 'block';
-  } else {
-    statusEl.textContent = `Selected: ${ringBtn.textContent.trim()}`;
-    setTimeout(() => { statusEl.style.display = 'none'; }, 1500);
+  // Update current color and redraw if needed
+  if (key !== currentColor && key in RINGS) {
+    currentColor = key;
+    statusEl.textContent = `Selected: ${selectedOption.text.trim()}`;
+    
+    // Redraw if we have video
+    if (video.videoWidth) {
+      requestAnimationFrame(draw);
+    }
+    
+    // Show loading status if image isn't loaded yet
+    if (!ringReadyMap[currentColor]) {
+      statusEl.textContent = `Loading ${selectedOption.text.trim()}...`;
+      // The image will update the status when loaded via its onload handler
+    }
   }
-};
+}
 
-// Use event delegation for ring buttons
-document.addEventListener('click', (e) => {
-  if (e.target.closest('.ring-btn')) {
-    handleRingButtonClick(e);
+// Initialize ring selector
+document.addEventListener('DOMContentLoaded', () => {
+  const ringDropdown = document.getElementById('ringDropdown');
+  if (ringDropdown) {
+    ringDropdown.addEventListener('change', handleRingSelection);
+    
+    // Set initial selection
+    const initialRing = ringDropdown.querySelector(`option[value="${currentColor}"]`);
+    if (initialRing) {
+      const previewImg = document.getElementById('ringPreview');
+      const ringName = document.getElementById('ringName');
+      if (previewImg && ringName) {
+        previewImg.src = initialRing.dataset.image;
+        ringName.textContent = initialRing.text;
+      }
+    }
   }
 });
-
-// Also handle touch events for better mobile support
-document.addEventListener('touchend', (e) => {
-  if (e.target.closest('.ring-btn')) {
-    e.preventDefault();
-    handleRingButtonClick(e);
-  }
-}, { passive: false });
 
 if (sizeSlider) {
   const applySizeUI = () => {
