@@ -986,61 +986,123 @@ function onFaceResults(results) {
 
 async function startCamera() {
   try {
+    console.log('Starting camera initialization...');
+    
+    // Check for required elements
+    if (!video || !statusEl || !loadingEl) {
+      console.error('Required elements not found');
+      return;
+    }
+
+    // Check for browser support
     if (!('mediaDevices' in navigator) || !navigator.mediaDevices.getUserMedia) {
-      statusEl.textContent = 'Error: Camera API not supported in this browser';
+      const errorMsg = 'Error: Camera API not supported in this browser';
+      console.error(errorMsg);
+      statusEl.textContent = errorMsg;
       loadingEl.textContent = 'Use a modern browser with camera support';
       return;
     }
+
+    // Check for secure context
     const localHostnames = ['localhost', '127.0.0.1', '::1'];
     if (!window.isSecureContext && !localHostnames.includes(location.hostname)) {
-      statusEl.textContent = 'This page must be served over HTTPS or localhost for camera access';
+      const errorMsg = 'This page must be served over HTTPS or localhost for camera access';
+      console.error(errorMsg);
+      statusEl.textContent = errorMsg;
       loadingEl.textContent = 'Open via a dev server (http://localhost) or HTTPS';
       return;
     }
 
+    // Try to get camera stream
     let stream = null;
     try {
+      console.log('Requesting camera access...');
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: { 
+          facingMode: { ideal: 'user' }, 
+          width: { ideal: 1280 }, 
+          height: { ideal: 720 } 
+        },
         audio: false
       });
+      console.log('Camera access granted');
     } catch (e1) {
+      console.warn('Primary camera access failed, trying fallback...', e1);
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: true, 
+          audio: false 
+        });
+        console.log('Fallback camera access granted');
       } catch (e2) {
-        console.error('Error accessing camera:', e2);
-        statusEl.textContent = 'Error: Camera access denied or unavailable';
+        const errorMsg = 'Error: Camera access denied or unavailable';
+        console.error('All camera access attempts failed:', e2);
+        statusEl.textContent = errorMsg;
         loadingEl.textContent = 'Check browser permissions and reload';
         return;
       }
     }
 
+    // Set up video element
     video.srcObject = stream;
-
-    const onReady = () => {
-      loadingEl.style.display = 'none';
-      statusEl.textContent = 'Camera ready. Show your hand or face!';
-      const cameraInstance = new Camera(video, {
-        onFrame: async () => {
-          await hands.send({ image: video });
-          await faceMesh.send({ image: video });
-        },
-        width: 1280,
-        height: 720
-      });
-      cameraInstance.start();
+    video.onerror = (e) => {
+      console.error('Video element error:', e);
+      statusEl.textContent = 'Error initializing video';
     };
 
-    if (video.readyState >= 2) {
+    const onReady = () => {
+      console.log('Video is ready, initializing AR...');
+      loadingEl.style.display = 'none';
+      statusEl.textContent = 'Camera ready. Show your hand or face!';
+      
+      try {
+        const cameraInstance = new Camera(video, {
+          onFrame: async () => {
+            try {
+              if (hands) await hands.send({ image: video });
+              if (faceMesh) await faceMesh.send({ image: video });
+            } catch (e) {
+              console.error('Error in frame processing:', e);
+            }
+          },
+          width: 1280,
+          height: 720
+        });
+        
+        cameraInstance.start();
+        console.log('AR camera started');
+      } catch (e) {
+        console.error('Error initializing AR camera:', e);
+        statusEl.textContent = 'Error initializing AR features';
+      }
+    };
+
+    // Handle video ready state
+    if (video.readyState >= 2) { // HAVE_CURRENT_DATA or greater
+      console.log('Video already ready, initializing...');
       onReady();
     } else {
-      video.addEventListener('loadedmetadata', () => { resizeCanvasToVideo(); onReady(); }, { once: true });
+      console.log('Waiting for video metadata...');
+      video.onloadedmetadata = () => {
+        console.log('Video metadata loaded');
+        resizeCanvasToVideo();
+        onReady();
+      };
     }
-    try { await video.play(); } catch {}
+
+    // Start video playback
+    try {
+      await video.play();
+      console.log('Video playback started');
+    } catch (e) {
+      console.error('Error starting video playback:', e);
+      statusEl.textContent = 'Error starting camera';
+    }
   } catch (err) {
-    console.error('Error accessing camera:', err);
-    statusEl.textContent = 'Error: Camera access denied or unavailable';
-    loadingEl.textContent = 'Please allow camera access and reload';
+    const errorMsg = 'Error initializing camera';
+    console.error(errorMsg, err);
+    statusEl.textContent = errorMsg;
+    loadingEl.textContent = 'Please check console for details and reload';
   }
 }
 
