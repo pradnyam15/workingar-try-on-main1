@@ -126,28 +126,63 @@ function loadHatForKey(key) {
   let attempted = 0;
   const strategies = [
     { useCORS: true, noReferrer: true, url: HATS[key] },
+    { useCORS: true, noReferrer: false, url: HATS[key] },
     { useCORS: false, noReferrer: true, url: HATS[key] },
     { useCORS: false, noReferrer: false, url: HATS[key] }
   ];
 
   img.onload = async () => {
-    try { if (img.decode) await img.decode(); } catch {}
-    hatReadyMap[key] = true;
-    console.log(`Hat image ready for ${key} (strategy ${attempted})`);
-    statusEl.textContent = `Hat image loaded (${key})`;
+    try { 
+      if (img.decode) await img.decode(); 
+      hatReadyMap[key] = true;
+      console.log(`✅ Hat image loaded successfully: ${key}`);
+      statusEl.textContent = `✅ Hat loaded: ${key.replace(/-/g, ' ').replace(/\d+$/, '')}`;
+    } catch (error) {
+      console.error(`Error decoding hat image ${key}:`, error);
+      hatReadyMap[key] = false;
+    }
   };
   
   img.onerror = () => {
-    console.warn(`Hat image load failed for ${key} (strategy ${attempted}), retrying...`);
-    statusEl.textContent = `Loading hat image... (attempt ${attempted + 2})`;
+    console.warn(`❌ Hat image load failed for ${key} (attempt ${attempted + 1})`);
+    statusEl.textContent = `Loading hat... (attempt ${attempted + 1})`;
     attempted += 1;
+    
     if (attempted < strategies.length) {
+      console.log(`Retrying with strategy ${attempted + 1} for ${key}...`);
       tryLoadImage(img, strategies[attempted].url, strategies[attempted]);
+    } else {
+      console.error(`All load attempts failed for hat: ${key}`);
+      statusEl.textContent = `Failed to load hat: ${key}`;
+      hatReadyMap[key] = false;
+      
+      // Create a fallback colored rectangle
+      const canvas = document.createElement('canvas');
+      canvas.width = 100;
+      canvas.height = 100;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = `hsl(${Math.random() * 360}, 70%, 60%)`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(5, 5, 90, 90);
+      ctx.fillStyle = 'white';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(key.split('-')[0], 50, 50);
+      
+      // Convert canvas to data URL and set as image source
+      img.src = canvas.toDataURL();
+      img.onload = () => {
+        hatReadyMap[key] = true;
+        console.log(`✅ Fallback image created for: ${key}`);
+      };
     }
   };
 
-  // kick off first attempt
-  tryLoadImage(img, strategies[attempted].url, strategies[attempted]);
+  // Start loading with the first strategy
+  console.log(`Starting to load hat: ${key}`);
+  tryLoadImage(img, strategies[0].url, strategies[0]);
 }
 
 // Load all hat images
@@ -197,11 +232,11 @@ const RINGS = {
   'laurel-leaf-6893709': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-laurel-leaf-png-6893709.png'
 };
 
-// Hat images
+// Hat images - Using placeholder images for now
 const HATS = {
-  'baseball-cap-2088469': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-baseball-cap-png-2088469.png',
-  'cowboy-hat-2088469': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-cowboy-hat-png-2088469.png',
-  'beanie-2088469': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-beanie-png-2088469.png'
+  'baseball-cap-2088469': 'https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png',
+  'cowboy-hat-2088469': 'https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/kanji.png',
+  'beanie-2088469': 'https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/kanji2.png'
 };
 
 const ringImgs = Object.fromEntries(Object.keys(RINGS).map(k => [k, new Image()]));
@@ -227,10 +262,30 @@ function smoothAngleValue(curr, target, alpha) {
 }
 
 function tryLoadImage(img, url, { useCORS, noReferrer }) {
-  if (noReferrer) img.referrerPolicy = 'no-referrer';
-  if (useCORS) img.crossOrigin = 'anonymous';
-  else img.removeAttribute('crossorigin');
-  img.src = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`; // cache-bust
+  try {
+    if (noReferrer) img.referrerPolicy = 'no-referrer';
+    if (useCORS) {
+      img.crossOrigin = 'anonymous';
+      // Add CORS proxy if needed
+      if (!url.startsWith('data:') && !url.startsWith('blob:')) {
+        url = `https://cors-anywhere.herokuapp.com/${url}`;
+      }
+    } else {
+      img.removeAttribute('crossorigin');
+    }
+    
+    // Add cache busting only for remote URLs
+    if (url.startsWith('http')) {
+      url = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
+    }
+    
+    console.log(`Loading image from: ${url}`);
+    img.src = url;
+  } catch (error) {
+    console.error('Error in tryLoadImage:', error);
+    // Trigger error handler
+    if (img.onerror) img.onerror();
+  }
 }
 
 function loadRingForKey(key) {
