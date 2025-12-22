@@ -982,6 +982,7 @@ function onFaceResults(results) {
     statusEl.textContent = 'Earrings overlay active';
   }
 }
+}
 
 async function startCamera() {
   try {
