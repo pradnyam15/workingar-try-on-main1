@@ -75,9 +75,13 @@ function initRingSelector() {
   
   // Close dropdown when clicking outside
   document.addEventListener('click', (e) => {
-    if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
-      dropdownToggle.setAttribute('aria-expanded', 'false');
-      dropdownMenu.classList.remove('show');
+    if (!e.target.closest('.dropdown') && !e.target.matches('.dropdown-toggle')) {
+      document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        menu.classList.remove('show');
+      });
+      document.querySelectorAll('.dropdown-toggle').forEach(btn => {
+        btn.setAttribute('aria-expanded', 'false');
+      });
     }
   });
   
@@ -116,16 +120,68 @@ function initRingSelector() {
   });
 }
 
+// Load hat images
+function loadHatForKey(key) {
+  const img = hatImgs[key];
+  let attempted = 0;
+  const strategies = [
+    { useCORS: true, noReferrer: true, url: HATS[key] },
+    { useCORS: false, noReferrer: true, url: HATS[key] },
+    { useCORS: false, noReferrer: false, url: HATS[key] }
+  ];
+
+  img.onload = async () => {
+    try { if (img.decode) await img.decode(); } catch {}
+    hatReadyMap[key] = true;
+    console.log(`Hat image ready for ${key} (strategy ${attempted})`);
+    statusEl.textContent = `Hat image loaded (${key})`;
+  };
+  
+  img.onerror = () => {
+    console.warn(`Hat image load failed for ${key} (strategy ${attempted}), retrying...`);
+    statusEl.textContent = `Loading hat image... (attempt ${attempted + 2})`;
+    attempted += 1;
+    if (attempted < strategies.length) {
+      tryLoadImage(img, strategies[attempted].url, strategies[attempted]);
+    }
+  };
+
+  // kick off first attempt
+  tryLoadImage(img, strategies[attempted].url, strategies[attempted]);
+}
+
+// Load all hat images
+Object.keys(HATS).forEach(loadHatForKey);
+
 // Initialize ring selector when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   initRingSelector();
+  
+  // Handle hat selection
+  document.querySelectorAll('.hats-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.hats-btn').forEach(b => b.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      currentHat = e.currentTarget.dataset.hat;
+      if (currentMode === 'hats') {
+        statusEl.textContent = `Hat selected: ${e.currentTarget.textContent.trim()}`;
+      }
+    });
+  });
+  
+  // Initialize the first hat as active
+  const firstHatBtn = document.querySelector('.hats-btn');
+  if (firstHatBtn) {
+    firstHatBtn.classList.add('active');
+  }
 });
 
 let sizeScalePct = 100;
 
 let currentColor = 'diamond-ring-1707837';
-let currentMode = 'rings'; // 'rings' | 'sunglasses'
+let currentMode = 'rings'; // 'rings' | 'sunglasses' | 'hats'
 let currentGlasses = 'aviators-105130';
+let currentHat = 'baseball-cap-2088469';
 
 // Color palettes for procedural ring rendering
 const metalColors = {
@@ -140,8 +196,19 @@ const RINGS = {
   'loose-diamonds-2037252': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-loose-diamonds-png-2037252.png',
   'laurel-leaf-6893709': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-laurel-leaf-png-6893709.png'
 };
+
+// Hat images
+const HATS = {
+  'baseball-cap-2088469': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-baseball-cap-png-2088469.png',
+  'cowboy-hat-2088469': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-cowboy-hat-png-2088469.png',
+  'beanie-2088469': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-beanie-png-2088469.png'
+};
+
 const ringImgs = Object.fromEntries(Object.keys(RINGS).map(k => [k, new Image()]));
 const ringReadyMap = Object.fromEntries(Object.keys(RINGS).map(k => [k, false]));
+
+const hatImgs = Object.fromEntries(Object.keys(HATS).map(k => [k, new Image()]));
+const hatReadyMap = Object.fromEntries(Object.keys(HATS).map(k => [k, false]));
 
 // Smoothing state to reduce jitter
 const SMOOTH_ALPHA = 0.30; // higher = snappier, lower = smoother
@@ -248,7 +315,6 @@ if (sizeSlider) {
   };
   sizeSlider.addEventListener('input', applySizeUI);
   applySizeUI();
-}
 
 // Mode toggle UI
 if (modeButtons && modeButtons.length) {
@@ -264,6 +330,8 @@ if (modeButtons && modeButtons.length) {
       document.getElementById('ringSelector')?.classList.add('active');
     } else if (currentMode === 'sunglasses') {
       document.getElementById('glassesSelector')?.classList.add('active');
+    } else if (currentMode === 'hats') {
+      document.getElementById('hatsSelector')?.classList.add('active');
     }
     // Earrings and Necklace don't have selectors as they have single options
   };
@@ -279,6 +347,7 @@ if (modeButtons && modeButtons.length) {
         currentMode === 'rings' ? 'Select a ring style' :
         currentMode === 'sunglasses' ? 'Select sunglasses style' :
         currentMode === 'earrings' ? 'Earrings mode' :
+        currentMode === 'hats' ? 'Select a hat' :
         'Necklace mode'
       );
       
@@ -503,8 +572,37 @@ if (!window.__necklaceImg) {
   tryLoadImage(nimg, strategiesNeck[attemptedNeck].url, strategiesNeck[attemptedNeck]);
 }
 
+function drawHat(hatImg, faceLandmarks) {
+  if (!hatImg || !hatReadyMap[currentHat]) return;
+  
+  // Get face landmarks for positioning the hat
+  const leftEar = faceLandmarks[234];
+  const rightEar = faceLandmarks[454];
+  const noseTop = faceLandmarks[168];
+  
+  if (!leftEar || !rightEar || !noseTop) return;
+  
+  // Calculate hat position and size
+  const headWidth = Math.hypot(
+    (rightEar.x - leftEar.x) * canvas.width,
+    (rightEar.y - leftEar.y) * canvas.height
+  );
+  
+  const hatWidth = headWidth * 2.5;
+  const hatHeight = (hatImg.height / hatImg.width) * hatWidth;
+  
+  // Position the hat above the head
+  const hatX = (leftEar.x + (rightEar.x - leftEar.x) / 2) * canvas.width - hatWidth / 2;
+  const hatY = (Math.min(leftEar.y, rightEar.y) * canvas.height) - hatHeight * 0.8;
+  
+  // Draw the hat
+  ctx.save();
+  ctx.drawImage(hatImg, hatX, hatY, hatWidth, hatHeight);
+  ctx.restore();
+}
+
 function onFaceResults(results) {
-  if (currentMode !== 'sunglasses' && currentMode !== 'earrings' && currentMode !== 'necklace') return; // only render in face modes
+  if (currentMode !== 'sunglasses' && currentMode !== 'earrings' && currentMode !== 'necklace' && currentMode !== 'hats') return; // only render in face modes
   resizeCanvasToVideo();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -513,10 +611,22 @@ function onFaceResults(results) {
     return;
   }
 
-  const landmarks = results.multiFaceLandmarks[0];
+  const faceLandmarks = results.multiFaceLandmarks[0];
+  
+  // Draw hat if in hats mode
+  if (currentMode === 'hats') {
+    const hatImg = hatImgs[currentHat];
+    if (hatImg && hatReadyMap[currentHat]) {
+      drawHat(hatImg, faceLandmarks);
+      statusEl.textContent = 'Hat detected';
+    } else {
+      statusEl.textContent = 'Loading hat image...';
+    }
+  }
+
   // Use outer eye corners: 33 (right eye) and 263 (left eye)
-  const right = landmarks[33];
-  const left = landmarks[263];
+  const right = faceLandmarks[33];
+  const left = faceLandmarks[263];
   const pxScaleX = (canvas.width / Math.max(1, Math.floor(window.devicePixelRatio || 1)));
   const pxScaleY = (canvas.height / Math.max(1, Math.floor(window.devicePixelRatio || 1)));
   const rx = right.x * pxScaleX;
