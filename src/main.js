@@ -56,167 +56,22 @@ document.addEventListener('click', (e) => {
 window.addEventListener('resize', applyControlsResponsiveState);
 applyControlsResponsiveState();
 
-// Ring selector functionality
-function initRingSelector() {
-  const dropdownToggle = document.getElementById('ringDropdownToggle');
-  const dropdownMenu = document.getElementById('ringDropdownMenu');
-  const ringOptions = document.querySelectorAll('.ring-option');
-  const selectedRing = document.querySelector('.selected-ring');
-  
-  if (!dropdownToggle || !dropdownMenu || ringOptions.length === 0 || !selectedRing) return;
-  
-  // Toggle dropdown
-  dropdownToggle.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const isExpanded = dropdownToggle.getAttribute('aria-expanded') === 'true';
-    dropdownToggle.setAttribute('aria-expanded', !isExpanded);
-    dropdownMenu.classList.toggle('show', !isExpanded);
-  });
-  
-  // Close dropdown when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.dropdown') && !e.target.matches('.dropdown-toggle')) {
-      document.querySelectorAll('.dropdown-menu').forEach(menu => {
-        menu.classList.remove('show');
-      });
-      document.querySelectorAll('.dropdown-toggle').forEach(btn => {
-        btn.setAttribute('aria-expanded', 'false');
-      });
-    }
-  });
-  
-  // Handle ring selection
-  ringOptions.forEach(option => {
-    option.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const color = option.getAttribute('data-color');
-      const name = option.querySelector('.ring-option-name').textContent;
-      const imgSrc = option.querySelector('.ring-option-image').src;
-      
-      // Update selected ring display
-      selectedRing.innerHTML = `
-        <img src="${imgSrc}" alt="${name}" class="ring-thumbnail">
-        <span>${name}</span>
-      `;
-      
-      // Update current color
-      currentColor = color;
-      
-      // Close dropdown
-      dropdownToggle.setAttribute('aria-expanded', 'false');
-      dropdownMenu.classList.remove('show');
-      
-      // Reset smoothing when changing rings
-      smoothX = null;
-      smoothY = null;
-      smoothAngle = null;
-      smoothR = null;
-      
-      statusEl.textContent = `Selected: ${name}`;
-      setTimeout(() => {
-        statusEl.textContent = 'Ready';
-      }, 2000);
-    });
-  });
-}
-
-// Load hat images
-function loadHatForKey(key) {
-  const img = hatImgs[key];
-  let attempted = 0;
-  const strategies = [
-    { useCORS: true, noReferrer: true, url: HATS[key] },
-    { useCORS: true, noReferrer: false, url: HATS[key] },
-    { useCORS: false, noReferrer: true, url: HATS[key] },
-    { useCORS: false, noReferrer: false, url: HATS[key] }
-  ];
-
-  img.onload = async () => {
-    try { 
-      if (img.decode) await img.decode(); 
-      hatReadyMap[key] = true;
-      console.log(`✅ Hat image loaded successfully: ${key}`);
-      statusEl.textContent = `✅ Hat loaded: ${key.replace(/-/g, ' ').replace(/\d+$/, '')}`;
-    } catch (error) {
-      console.error(`Error decoding hat image ${key}:`, error);
-      hatReadyMap[key] = false;
-    }
-  };
-  
-  img.onerror = () => {
-    console.warn(`❌ Hat image load failed for ${key} (attempt ${attempted + 1})`);
-    statusEl.textContent = `Loading hat... (attempt ${attempted + 1})`;
-    attempted += 1;
-    
-    if (attempted < strategies.length) {
-      console.log(`Retrying with strategy ${attempted + 1} for ${key}...`);
-      tryLoadImage(img, strategies[attempted].url, strategies[attempted]);
-    } else {
-      console.error(`All load attempts failed for hat: ${key}`);
-      statusEl.textContent = `Failed to load hat: ${key}`;
-      hatReadyMap[key] = false;
-      
-      // Create a fallback colored rectangle
-      const canvas = document.createElement('canvas');
-      canvas.width = 100;
-      canvas.height = 100;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = `hsl(${Math.random() * 360}, 70%, 60%)`;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = 'white';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(5, 5, 90, 90);
-      ctx.fillStyle = 'white';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(key.split('-')[0], 50, 50);
-      
-      // Convert canvas to data URL and set as image source
-      img.src = canvas.toDataURL();
-      img.onload = () => {
-        hatReadyMap[key] = true;
-        console.log(`✅ Fallback image created for: ${key}`);
-      };
-    }
-  };
-
-  // Start loading with the first strategy
-  console.log(`Starting to load hat: ${key}`);
-  tryLoadImage(img, strategies[0].url, strategies[0]);
-}
-
-// Load all hat images
-Object.keys(HATS).forEach(loadHatForKey);
-
-// Initialize ring selector when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  initRingSelector();
-  
-  // Handle hat selection
-  document.querySelectorAll('.hats-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.hats-btn').forEach(b => b.classList.remove('active'));
-      e.currentTarget.classList.add('active');
-      currentHat = e.currentTarget.dataset.hat;
-      if (currentMode === 'hats') {
-        statusEl.textContent = `Hat selected: ${e.currentTarget.textContent.trim()}`;
-      }
-    });
-  });
-  
-  // Initialize the first hat as active
-  const firstHatBtn = document.querySelector('.hats-btn');
-  if (firstHatBtn) {
-    firstHatBtn.classList.add('active');
-  }
-});
-
 let sizeScalePct = 100;
 
 let currentColor = 'diamond-ring-1707837';
-let currentMode = 'rings'; // 'rings' | 'sunglasses' | 'hats'
+
+// Set initial ring preview
+document.addEventListener('DOMContentLoaded', () => {
+  const initialRing = document.querySelector('.ring-dropdown option[value="diamond-ring-1707837"]');
+  if (initialRing) {
+    const previewImg = document.getElementById('ringPreview');
+    const ringName = document.getElementById('ringName');
+    previewImg.src = initialRing.dataset.image;
+    ringName.textContent = initialRing.textContent;
+  }
+});
+let currentMode = 'rings'; // 'rings' | 'sunglasses'
 let currentGlasses = 'aviators-105130';
-let currentHat = 'baseball-cap-2088469';
 
 // Color palettes for procedural ring rendering
 const metalColors = {
@@ -231,19 +86,8 @@ const RINGS = {
   'loose-diamonds-2037252': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-loose-diamonds-png-2037252.png',
   'laurel-leaf-6893709': 'https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-laurel-leaf-png-6893709.png'
 };
-
-// Hat images - Using placeholder images for now
-const HATS = {
-  'baseball-cap-2088469': 'https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png',
-  'cowboy-hat-2088469': 'https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/kanji.png',
-  'beanie-2088469': 'https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/kanji2.png'
-};
-
 const ringImgs = Object.fromEntries(Object.keys(RINGS).map(k => [k, new Image()]));
 const ringReadyMap = Object.fromEntries(Object.keys(RINGS).map(k => [k, false]));
-
-const hatImgs = Object.fromEntries(Object.keys(HATS).map(k => [k, new Image()]));
-const hatReadyMap = Object.fromEntries(Object.keys(HATS).map(k => [k, false]));
 
 // Smoothing state to reduce jitter
 const SMOOTH_ALPHA = 0.30; // higher = snappier, lower = smoother
@@ -262,30 +106,10 @@ function smoothAngleValue(curr, target, alpha) {
 }
 
 function tryLoadImage(img, url, { useCORS, noReferrer }) {
-  try {
-    if (noReferrer) img.referrerPolicy = 'no-referrer';
-    if (useCORS) {
-      img.crossOrigin = 'anonymous';
-      // Add CORS proxy if needed
-      if (!url.startsWith('data:') && !url.startsWith('blob:')) {
-        url = `https://cors-anywhere.herokuapp.com/${url}`;
-      }
-    } else {
-      img.removeAttribute('crossorigin');
-    }
-    
-    // Add cache busting only for remote URLs
-    if (url.startsWith('http')) {
-      url = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
-    }
-    
-    console.log(`Loading image from: ${url}`);
-    img.src = url;
-  } catch (error) {
-    console.error('Error in tryLoadImage:', error);
-    // Trigger error handler
-    if (img.onerror) img.onerror();
-  }
+  if (noReferrer) img.referrerPolicy = 'no-referrer';
+  if (useCORS) img.crossOrigin = 'anonymous';
+  else img.removeAttribute('crossorigin');
+  img.src = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`; // cache-bust
 }
 
 function loadRingForKey(key) {
@@ -370,6 +194,7 @@ if (sizeSlider) {
   };
   sizeSlider.addEventListener('input', applySizeUI);
   applySizeUI();
+}
 
 // Mode toggle UI
 if (modeButtons && modeButtons.length) {
@@ -385,8 +210,6 @@ if (modeButtons && modeButtons.length) {
       document.getElementById('ringSelector')?.classList.add('active');
     } else if (currentMode === 'sunglasses') {
       document.getElementById('glassesSelector')?.classList.add('active');
-    } else if (currentMode === 'hats') {
-      document.getElementById('hatsSelector')?.classList.add('active');
     }
     // Earrings and Necklace don't have selectors as they have single options
   };
@@ -402,7 +225,6 @@ if (modeButtons && modeButtons.length) {
         currentMode === 'rings' ? 'Select a ring style' :
         currentMode === 'sunglasses' ? 'Select sunglasses style' :
         currentMode === 'earrings' ? 'Earrings mode' :
-        currentMode === 'hats' ? 'Select a hat' :
         'Necklace mode'
       );
       
@@ -627,37 +449,8 @@ if (!window.__necklaceImg) {
   tryLoadImage(nimg, strategiesNeck[attemptedNeck].url, strategiesNeck[attemptedNeck]);
 }
 
-function drawHat(hatImg, faceLandmarks) {
-  if (!hatImg || !hatReadyMap[currentHat]) return;
-  
-  // Get face landmarks for positioning the hat
-  const leftEar = faceLandmarks[234];
-  const rightEar = faceLandmarks[454];
-  const noseTop = faceLandmarks[168];
-  
-  if (!leftEar || !rightEar || !noseTop) return;
-  
-  // Calculate hat position and size
-  const headWidth = Math.hypot(
-    (rightEar.x - leftEar.x) * canvas.width,
-    (rightEar.y - leftEar.y) * canvas.height
-  );
-  
-  const hatWidth = headWidth * 2.5;
-  const hatHeight = (hatImg.height / hatImg.width) * hatWidth;
-  
-  // Position the hat above the head
-  const hatX = (leftEar.x + (rightEar.x - leftEar.x) / 2) * canvas.width - hatWidth / 2;
-  const hatY = (Math.min(leftEar.y, rightEar.y) * canvas.height) - hatHeight * 0.8;
-  
-  // Draw the hat
-  ctx.save();
-  ctx.drawImage(hatImg, hatX, hatY, hatWidth, hatHeight);
-  ctx.restore();
-}
-
 function onFaceResults(results) {
-  if (currentMode !== 'sunglasses' && currentMode !== 'earrings' && currentMode !== 'necklace' && currentMode !== 'hats') return; // only render in face modes
+  if (currentMode !== 'sunglasses' && currentMode !== 'earrings' && currentMode !== 'necklace') return; // only render in face modes
   resizeCanvasToVideo();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -666,22 +459,10 @@ function onFaceResults(results) {
     return;
   }
 
-  const faceLandmarks = results.multiFaceLandmarks[0];
-  
-  // Draw hat if in hats mode
-  if (currentMode === 'hats') {
-    const hatImg = hatImgs[currentHat];
-    if (hatImg && hatReadyMap[currentHat]) {
-      drawHat(hatImg, faceLandmarks);
-      statusEl.textContent = 'Hat detected';
-    } else {
-      statusEl.textContent = 'Loading hat image...';
-    }
-  }
-
+  const landmarks = results.multiFaceLandmarks[0];
   // Use outer eye corners: 33 (right eye) and 263 (left eye)
-  const right = faceLandmarks[33];
-  const left = faceLandmarks[263];
+  const right = landmarks[33];
+  const left = landmarks[263];
   const pxScaleX = (canvas.width / Math.max(1, Math.floor(window.devicePixelRatio || 1)));
   const pxScaleY = (canvas.height / Math.max(1, Math.floor(window.devicePixelRatio || 1)));
   const rx = right.x * pxScaleX;
@@ -1037,127 +818,64 @@ function onFaceResults(results) {
     statusEl.textContent = 'Earrings overlay active';
   }
 }
-}
 
 async function startCamera() {
   try {
-    console.log('Starting camera initialization...');
-    
-    // Check for required elements
-    if (!video || !statusEl || !loadingEl) {
-      console.error('Required elements not found');
-      return;
-    }
-
-    // Check for browser support
     if (!('mediaDevices' in navigator) || !navigator.mediaDevices.getUserMedia) {
-      const errorMsg = 'Error: Camera API not supported in this browser';
-      console.error(errorMsg);
-      statusEl.textContent = errorMsg;
+      statusEl.textContent = 'Error: Camera API not supported in this browser';
       loadingEl.textContent = 'Use a modern browser with camera support';
       return;
     }
-
-    // Check for secure context
     const localHostnames = ['localhost', '127.0.0.1', '::1'];
     if (!window.isSecureContext && !localHostnames.includes(location.hostname)) {
-      const errorMsg = 'This page must be served over HTTPS or localhost for camera access';
-      console.error(errorMsg);
-      statusEl.textContent = errorMsg;
+      statusEl.textContent = 'This page must be served over HTTPS or localhost for camera access';
       loadingEl.textContent = 'Open via a dev server (http://localhost) or HTTPS';
       return;
     }
 
-    // Try to get camera stream
     let stream = null;
     try {
-      console.log('Requesting camera access...');
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: { ideal: 'user' }, 
-          width: { ideal: 1280 }, 
-          height: { ideal: 720 } 
-        },
+        video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: false
       });
-      console.log('Camera access granted');
     } catch (e1) {
-      console.warn('Primary camera access failed, trying fallback...', e1);
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ 
-          video: true, 
-          audio: false 
-        });
-        console.log('Fallback camera access granted');
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       } catch (e2) {
-        const errorMsg = 'Error: Camera access denied or unavailable';
-        console.error('All camera access attempts failed:', e2);
-        statusEl.textContent = errorMsg;
+        console.error('Error accessing camera:', e2);
+        statusEl.textContent = 'Error: Camera access denied or unavailable';
         loadingEl.textContent = 'Check browser permissions and reload';
         return;
       }
     }
 
-    // Set up video element
     video.srcObject = stream;
-    video.onerror = (e) => {
-      console.error('Video element error:', e);
-      statusEl.textContent = 'Error initializing video';
-    };
 
     const onReady = () => {
-      console.log('Video is ready, initializing AR...');
       loadingEl.style.display = 'none';
       statusEl.textContent = 'Camera ready. Show your hand or face!';
-      
-      try {
-        const cameraInstance = new Camera(video, {
-          onFrame: async () => {
-            try {
-              if (hands) await hands.send({ image: video });
-              if (faceMesh) await faceMesh.send({ image: video });
-            } catch (e) {
-              console.error('Error in frame processing:', e);
-            }
-          },
-          width: 1280,
-          height: 720
-        });
-        
-        cameraInstance.start();
-        console.log('AR camera started');
-      } catch (e) {
-        console.error('Error initializing AR camera:', e);
-        statusEl.textContent = 'Error initializing AR features';
-      }
+      const cameraInstance = new Camera(video, {
+        onFrame: async () => {
+          await hands.send({ image: video });
+          await faceMesh.send({ image: video });
+        },
+        width: 1280,
+        height: 720
+      });
+      cameraInstance.start();
     };
 
-    // Handle video ready state
-    if (video.readyState >= 2) { // HAVE_CURRENT_DATA or greater
-      console.log('Video already ready, initializing...');
+    if (video.readyState >= 2) {
       onReady();
     } else {
-      console.log('Waiting for video metadata...');
-      video.onloadedmetadata = () => {
-        console.log('Video metadata loaded');
-        resizeCanvasToVideo();
-        onReady();
-      };
+      video.addEventListener('loadedmetadata', () => { resizeCanvasToVideo(); onReady(); }, { once: true });
     }
-
-    // Start video playback
-    try {
-      await video.play();
-      console.log('Video playback started');
-    } catch (e) {
-      console.error('Error starting video playback:', e);
-      statusEl.textContent = 'Error starting camera';
-    }
+    try { await video.play(); } catch {}
   } catch (err) {
-    const errorMsg = 'Error initializing camera';
-    console.error(errorMsg, err);
-    statusEl.textContent = errorMsg;
-    loadingEl.textContent = 'Please check console for details and reload';
+    console.error('Error accessing camera:', err);
+    statusEl.textContent = 'Error: Camera access denied or unavailable';
+    loadingEl.textContent = 'Please allow camera access and reload';
   }
 }
 

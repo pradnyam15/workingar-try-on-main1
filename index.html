@@ -31,29 +31,10 @@
       <details class="mode-selector" open>
         <summary>Categories</summary>
         <div class="mode-buttons">
-          <div class="dropdown">
-            <button class="mode-btn dropdown-toggle active" data-mode="rings" id="ringsDropdown" aria-expanded="false">
-              <i class="fas fa-ring"></i>
-              <span>Rings</span>
-              <i class="fas fa-chevron-down"></i>
-            </button>
-            <div class="dropdown-menu ring-dropdown-menu" aria-labelledby="ringsDropdown">
-              <div class="ring-options-grid">
-                <div class="ring-option" data-color="diamond-ring-1707837">
-                  <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-diamond-ring-png-1707837.png" alt="Diamond Ring" class="ring-option-image">
-                  <span class="ring-option-name">Diamond Ring</span>
-                </div>
-                <div class="ring-option" data-color="loose-diamonds-2037252">
-                  <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-loose-diamonds-png-2037252.png" alt="Loose Diamonds" class="ring-option-image">
-                  <span class="ring-option-name">Loose Diamonds</span>
-                </div>
-                <div class="ring-option" data-color="laurel-leaf-6893709">
-                  <img src="https://pub-e46fd816b4ee497fb2f639f180c4df20.r2.dev/pngfind.com-laurel-leaf-png-6893709.png" alt="Laurel Leaf" class="ring-option-image">
-                  <span class="ring-option-name">Laurel Leaf</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <button class="mode-btn active" data-mode="rings">
+            <i class="fas fa-ring"></i>
+            <span>Rings</span>
+          </button>
           <button class="mode-btn" data-mode="sunglasses">
             <i class="fas fa-sun"></i>
             <span>Sunglasses</span>
@@ -66,10 +47,6 @@
             <i class="fas fa-gem" style="transform: rotate(45deg); display: inline-block;"></i>
             <span>Necklace</span>
           </button>
-          <button class="mode-btn" data-mode="hats">
-            <i class="fas fa-hat-cowboy"></i>
-            <span>Hats</span>
-          </button>
         </div>
       </details>
 
@@ -81,25 +58,18 @@
         </div>
       </details>
 
-      <div class="ring-selector" id="ringSelector" style="display: none;">
-        <!-- This is now hidden as we've moved the ring selection to the Rings dropdown -->
-      </div>
-
-      <details class="item-selector" id="hatsSelector">
-        <summary>Hat Styles</summary>
-        <div class="item-buttons">
-          <button class="item-btn hats-btn active" data-hat="baseball-cap-2088469">
-            <i class="fas fa-hat-cowboy"></i>
-            <span>Baseball Cap</span>
-          </button>
-          <button class="item-btn hats-btn" data-hat="cowboy-hat-2088469">
-            <i class="fas fa-hat-cowboy"></i>
-            <span>Cowboy Hat</span>
-          </button>
-          <button class="item-btn hats-btn" data-hat="beanie-2088469">
-            <i class="fas fa-hat-winter"></i>
-            <span>Beanie</span>
-          </button>
+      <details class="item-selector" id="ringSelector" open>
+        <summary>Ring Styles</summary>
+        <div class="ring-selector">
+          <select id="ringDropdown" class="ring-dropdown">
+            <option value="diamond-ring-1707837" data-image="https://cdn.pixabay.com/photo/2016/10/15/05/23/diamond-ring-1707837_1280.png">Diamond Ring</option>
+            <option value="loose-diamonds-2037252" data-image="https://cdn.pixabay.com/photo/2017/01/31/22/14/loose-diamonds-2037252_1280.png">Loose Diamonds</option>
+            <option value="laurel-leaf-6893709" data-image="https://cdn.pixabay.com/photo/2021/11/22/13/47/laurel-leaf-6893709_1280.png">Laurel Leaf</option>
+          </select>
+          <div class="ring-preview">
+            <img id="ringPreview" src="https://cdn.pixabay.com/photo/2016/10/15/05/23/diamond-ring-1707837_1280.png" alt="Ring Preview">
+            <div id="ringName">Diamond Ring</div>
+          </div>
         </div>
       </details>
 
@@ -146,6 +116,5 @@
 
   <!-- App entry -->
   <script type="module" src="./src/main.js"></script>
-  <script src="/src/dropdown.js"></script>
 </body>
 </html>
